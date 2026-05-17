@@ -9,10 +9,10 @@ export default function AppShell({ children }: { children: ReactNode }) {
       <div className="flex">
         <Sidebar />
 
-        <main className="min-w-0 flex-1">
+        <main className="min-w-0 flex-1 pb-24 md:pb-0">
           <Topbar />
 
-          <div className="mx-auto w-full max-w-7xl px-4 py-6 lg:px-8">
+          <div className="mx-auto w-full max-w-7xl px-4 py-5 sm:px-5 md:px-6 lg:px-8 lg:py-6">
             {children}
           </div>
         </main>

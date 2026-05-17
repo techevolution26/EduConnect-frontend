@@ -1,9 +1,18 @@
 import { getAccessToken } from "@/lib/auth";
 import type {
+  AdminDashboardStats,
+  AdminUser,
+  AdminUserListResponse,
+  Category,
+  Content,
   ContentDetail,
+  ContentListResponse,
   FeedResponse,
+  Hub,
   TokenResponse,
   User,
+  UserRole,
+  WriterProfile,
 } from "@/lib/types";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -119,14 +128,239 @@ export const api = {
     );
   },
 
+  // forYouFeed() {
+  //   return apiRequest<FeedResponse>("/feed/for-you", {
+  //     auth: true,
+  //   });
+  // },
+
+  contentDetail(slug: string) {
+    return apiRequest<ContentDetail>(`/content/${slug}`, {
+      auth: true,
+    });
+  },
+
+  updateMe(payload: {
+    full_name?: string;
+    username?: string;
+    bio?: string;
+    avatar_url?: string;
+  }) {
+    return apiRequest<User>("/users/me", {
+      method: "PATCH",
+      body: payload,
+      auth: true,
+    });
+  },
+
+  categories() {
+    return apiRequest<Category[]>("/categories");
+  },
+
+  hubs() {
+    return apiRequest<Hub[]>("/hubs");
+  },
+
+  hubDetail(slug: string) {
+    return apiRequest<Hub>(`/hubs/${slug}`);
+  },
+
   forYouFeed() {
     return apiRequest<FeedResponse>("/feed/for-you", {
       auth: true,
     });
   },
 
-  contentDetail(slug: string) {
-    return apiRequest<ContentDetail>(`/content/${slug}`, {
+  categoryFeed(categoryId: string) {
+    return apiRequest<FeedResponse>(`/feed/by-category/${categoryId}`);
+  },
+
+  hubFeed(hubId: string) {
+    return apiRequest<FeedResponse>(`/feed/by-hub/${hubId}`);
+  },
+
+  createContent(payload: {
+    title: string;
+    slug: string;
+    excerpt?: string;
+    body: string;
+    content_type: string;
+    visibility: string;
+    is_premium: boolean;
+    category_id?: string;
+    hub_id?: string;
+    cover_image_url?: string;
+  }) {
+    return apiRequest<Content>("/content", {
+      method: "POST",
+      body: payload,
+      auth: true,
+    });
+  },
+
+  submitContentForReview(contentId: string) {
+    return apiRequest<Content>(`/content/${contentId}/submit-review`, {
+      method: "POST",
+      auth: true,
+    });
+  },
+
+  pendingContent() {
+    return apiRequest<ContentListResponse>("/admin/content/pending", {
+      auth: true,
+    });
+  },
+
+  approveContent(contentId: string) {
+    return apiRequest<Content>(`/admin/content/${contentId}/approve`, {
+      method: "POST",
+      auth: true,
+    });
+  },
+
+  rejectContent(contentId: string, reason: string) {
+    return apiRequest<Content>(`/admin/content/${contentId}/reject`, {
+      method: "POST",
+      body: { reason },
+      auth: true,
+    });
+  },
+
+  writers() {
+    return apiRequest<WriterProfile[]>("/writers");
+  },
+
+  writerDetail(writerId: string) {
+    return apiRequest<WriterProfile>(`/writers/${writerId}`);
+  },
+
+  writerContent(writerId: string) {
+    return apiRequest<ContentListResponse>(`/writers/${writerId}/content`);
+  },
+
+  adminDashboard() {
+    return apiRequest<AdminDashboardStats>("/admin/dashboard", {
+      auth: true,
+    });
+  },
+
+  adminUsers(params?: {
+    skip?: number;
+    limit?: number;
+    role?: UserRole;
+    search?: string;
+  }) {
+    const searchParams = new URLSearchParams();
+
+    Object.entries(params ?? {}).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== "") {
+        searchParams.set(key, String(value));
+      }
+    });
+
+    const query = searchParams.toString();
+
+    return apiRequest<AdminUserListResponse>(
+      `/admin/users${query ? `?${query}` : ""}`,
+      {
+        auth: true,
+      },
+    );
+  },
+
+  updateAdminUserRole(
+    userId: string,
+    payload: {
+      role: UserRole;
+      is_verified?: boolean;
+    },
+  ) {
+    return apiRequest<AdminUser>(`/admin/users/${userId}/role`, {
+      method: "PATCH",
+      body: payload,
+      auth: true,
+    });
+  },
+
+  updateAdminUserStatus(
+    userId: string,
+    payload: {
+      is_active: boolean;
+    },
+  ) {
+    return apiRequest<AdminUser>(`/admin/users/${userId}/status`, {
+      method: "PATCH",
+      body: payload,
+      auth: true,
+    });
+  },
+
+  createCategory(payload: {
+    name: string;
+    slug: string;
+    description?: string;
+  }) {
+    return apiRequest<Category>("/categories", {
+      method: "POST",
+      body: payload,
+      auth: true,
+    });
+  },
+
+  updateCategory(
+    categoryId: string,
+    payload: {
+      name?: string;
+      slug?: string;
+      description?: string;
+      is_active?: boolean;
+    },
+  ) {
+    return apiRequest<Category>(`/categories/${categoryId}`, {
+      method: "PATCH",
+      body: payload,
+      auth: true,
+    });
+  },
+
+  createHub(payload: {
+    name: string;
+    slug: string;
+    description?: string;
+    cover_image_url?: string;
+  }) {
+    return apiRequest<Hub>("/hubs", {
+      method: "POST",
+      body: payload,
+      auth: true,
+    });
+  },
+
+  updateHub(
+    hubId: string,
+    payload: {
+      name?: string;
+      slug?: string;
+      description?: string;
+      cover_image_url?: string;
+      is_active?: boolean;
+    },
+  ) {
+    return apiRequest<Hub>(`/hubs/${hubId}`, {
+      method: "PATCH",
+      body: payload,
+      auth: true,
+    });
+  },
+
+  adminCategories() {
+    return apiRequest<Category[]>("/categories?include_inactive=true", {
+      auth: true,
+    });
+  },
+
+  adminHubs() {
+    return apiRequest<Hub[]>("/hubs?include_inactive=true", {
       auth: true,
     });
   },

@@ -1,4 +1,4 @@
-import AuthGuard from "@/components/auth/AuthGuard";
+import AuthGuard from "@/components/auth/AuthGaurd";
 import AppShell from "@/components/layout/AppShell";
 
 export default function PlatformLayout({

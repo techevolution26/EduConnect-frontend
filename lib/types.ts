@@ -105,3 +105,58 @@ export type TokenResponse = {
 export type ApiErrorResponse = {
   detail?: string;
 };
+
+export type ContentCreatePayload = {
+  title: string;
+  slug: string;
+  excerpt?: string;
+  body: string;
+  content_type: ContentType;
+  visibility: ContentVisibility;
+  is_premium: boolean;
+  category_id?: string;
+  hub_id?: string;
+  cover_image_url?: string;
+};
+
+export type ContentListResponse = {
+  items: Content[];
+  total: number;
+};
+
+export type WriterProfile = User & {
+  followers_count: number;
+  published_count: number;
+};
+
+export type AdminDashboardStats = {
+  total_users: number;
+  total_readers: number;
+  total_writers: number;
+  total_teachers: number;
+  total_students: number;
+  total_parents: number;
+  total_moderators: number;
+  total_admins: number;
+
+  total_content: number;
+  pending_content: number;
+  published_content: number;
+  rejected_content: number;
+
+  total_categories: number;
+  total_hubs: number;
+  total_partnerships: number;
+  active_partnerships: number;
+};
+
+export type AdminUser = User & {
+  updated_at: string;
+};
+
+export type AdminUserListResponse = {
+  items: AdminUser[];
+  total: number;
+  skip: number;
+  limit: number;
+};
