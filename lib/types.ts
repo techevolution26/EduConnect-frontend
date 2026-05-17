@@ -160,3 +160,14 @@ export type AdminUserListResponse = {
   skip: number;
   limit: number;
 };
+
+export type Comment = {
+  id: string;
+  content_id: string;
+  user_id: string;
+  parent_id: string | null;
+  body: string;
+  is_hidden: boolean;
+  created_at: string;
+  updated_at: string;
+};

@@ -21,7 +21,7 @@ export default function AdminCategoriesPage() {
 
     const categoriesQuery = useQuery({
         queryKey: ["categories"],
-        queryFn: api.categories,
+        queryFn: api.adminCategories,
     });
 
     const createMutation = useMutation({

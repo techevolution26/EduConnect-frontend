@@ -298,7 +298,7 @@ export const api = {
   createCategory(payload: {
     name: string;
     slug: string;
-    description?: string;
+    description?: string | null;
   }) {
     return apiRequest<Category>("/categories", {
       method: "POST",
@@ -312,7 +312,7 @@ export const api = {
     payload: {
       name?: string;
       slug?: string;
-      description?: string;
+      description?: string | null;
       is_active?: boolean;
     },
   ) {
@@ -326,8 +326,8 @@ export const api = {
   createHub(payload: {
     name: string;
     slug: string;
-    description?: string;
-    cover_image_url?: string;
+    description?: string | null;
+    cover_image_url?: string | null;
   }) {
     return apiRequest<Hub>("/hubs", {
       method: "POST",
@@ -341,8 +341,8 @@ export const api = {
     payload: {
       name?: string;
       slug?: string;
-      description?: string;
-      cover_image_url?: string;
+      description?: string | null;
+      cover_image_url?: string | null;
       is_active?: boolean;
     },
   ) {
@@ -363,5 +363,79 @@ export const api = {
     return apiRequest<Hub[]>("/hubs?include_inactive=true", {
       auth: true,
     });
+  },
+
+  adminContent(params?: {
+    skip?: number;
+    limit?: number;
+    status_filter?: string;
+    content_type?: string;
+    search?: string;
+  }) {
+    const searchParams = new URLSearchParams();
+
+    Object.entries(params ?? {}).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== "") {
+        searchParams.set(key, String(value));
+      }
+    });
+
+    const query = searchParams.toString();
+
+    return apiRequest<ContentListResponse>(
+      `/admin/content${query ? `?${query}` : ""}`,
+      {
+        auth: true,
+      },
+    );
+  },
+
+  comments(contentId: string) {
+    return apiRequest<Comment[]>(`/content/${contentId}/comments`);
+  },
+
+  createComment(contentId: string, payload: { body: string; parent_id?: string }) {
+    return apiRequest<Comment>(`/content/${contentId}/comments`, {
+      method: "POST",
+      body: payload,
+      auth: true,
+    });
+  },
+
+  likeContent(contentId: string) {
+    return apiRequest<{ message: string }>(`/content/${contentId}/like`, {
+      method: "POST",
+      auth: true,
+    });
+  },
+
+  bookmarkContent(contentId: string) {
+    return apiRequest<{ message: string }>(`/content/${contentId}/bookmark`, {
+      method: "POST",
+      auth: true,
+    });
+  },
+
+  myContent(params?: {
+    skip?: number;
+    limit?: number;
+    status_filter?: string;
+  }) {
+    const searchParams = new URLSearchParams();
+
+    Object.entries(params ?? {}).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== "") {
+        searchParams.set(key, String(value));
+      }
+    });
+
+    const query = searchParams.toString();
+
+    return apiRequest<ContentListResponse>(
+      `/content/mine${query ? `?${query}` : ""}`,
+      {
+        auth: true,
+      },
+    );
   },
 };

@@ -2,6 +2,8 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
+import ContentActions from "@/components/content/ContentActions";
+import CommentsSection from "@/components/content/CommentsSection";
 
 import ContentReader from "@/components/content/ContentReader";
 import { api } from "@/lib/api";
@@ -27,5 +29,19 @@ export default function ReadPage() {
         );
     }
 
-    return <ContentReader content={data} />;
+    return (
+        <>
+            <ContentReader content={data} />
+
+            {data.has_access ? (
+                <>
+                    <div className="mx-auto max-w-3xl">
+                        <ContentActions contentId={data.id} />
+                    </div>
+
+                    <CommentsSection contentId={data.id} />
+                </>
+            ) : null}
+        </>
+    );
 }
