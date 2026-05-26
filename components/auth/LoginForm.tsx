@@ -10,8 +10,8 @@ import { saveAuthSession } from "@/lib/auth";
 export default function LoginForm() {
     const router = useRouter();
 
-    const [email, setEmail] = useState("reader@example.com");
-    const [password, setPassword] = useState("ReaderPass123!");
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
 
     const mutation = useMutation({
         mutationFn: api.login,

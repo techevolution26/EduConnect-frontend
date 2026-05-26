@@ -13,6 +13,10 @@ import type {
   User,
   UserRole,
   WriterProfile,
+  NotificationListResponse,
+  Notification,
+  ModerationLog,
+  WriterAnalytics,
 } from "@/lib/types";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -438,4 +442,64 @@ export const api = {
       },
     );
   },
+
+  myContentDetail(contentId: string) {
+    return apiRequest<Content>(`/content/mine/${contentId}`, {
+      auth: true,
+    });
+  },
+
+  updateContent(
+    contentId: string,
+    payload: {
+      title?: string;
+      slug?: string;
+      excerpt?: string | null;
+      body?: string;
+      content_type?: string;
+      visibility?: string;
+      is_premium?: boolean;
+      category_id?: string | null;
+      hub_id?: string | null;
+      cover_image_url?: string | null;
+    },
+  ) {
+    return apiRequest<Content>(`/content/${contentId}`, {
+      method: "PATCH",
+      body: payload,
+      auth: true,
+    });
+  },
+
+  notifications() {
+    return apiRequest<NotificationListResponse>("/notifications", {
+      auth: true,
+    });
+  },
+
+  markNotificationRead(notificationId: string) {
+    return apiRequest<Notification>(`/notifications/${notificationId}/read`, {
+      method: "PATCH",
+      auth: true,
+    });
+  },
+
+  markAllNotificationsRead() {
+    return apiRequest<{ message: string }>("/notifications/read-all", {
+      method: "PATCH",
+      auth: true,
+    });
+  },
+
+  contentModerationLogs(contentId: string) {
+    return apiRequest<ModerationLog[]>(`/content/mine/${contentId}/moderation`, {
+      auth: true,
+    });
+  },
+
+ writerAnalytics() {
+  return apiRequest<WriterAnalytics>("/content/analytics/me", {
+    auth: true,
+  });
+},
 };

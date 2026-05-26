@@ -171,3 +171,57 @@ export type Comment = {
   created_at: string;
   updated_at: string;
 };
+
+export type NotificationType =
+  | "CONTENT_APPROVED"
+  | "CONTENT_REJECTED"
+  | "NEW_FOLLOWER"
+  | "COMMENT"
+  | "PARTNERSHIP"
+  | "SYSTEM";
+
+export type Notification = {
+  id: string;
+  user_id: string;
+  notification_type: NotificationType;
+  title: string;
+  body: string | null;
+  is_read: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type NotificationListResponse = {
+  items: Notification[];
+  total: number;
+  unread_count: number;
+};
+
+export type ModerationAction =
+  | "APPROVED"
+  | "REJECTED"
+  | "HIDDEN"
+  | "RESTORED"
+  | "FLAGGED";
+
+export type ModerationLog = {
+  id: string;
+  moderator_id: string;
+  content_id: string | null;
+  action: ModerationAction;
+  note: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type WriterAnalytics = {
+  total_content: number;
+  drafts: number;
+  pending: number;
+  published: number;
+  rejected: number;
+  followers: number;
+  likes_received: number;
+  comments_received: number;
+  bookmarks_received: number;
+};

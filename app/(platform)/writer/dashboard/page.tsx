@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import RoleGuard from "@/components/auth/RoleGuard";
-import ContentCard from "@/components/content/ContentCard";
+// import ContentCard from "@/components/content/ContentCard";
 import EmptyState from "@/components/ui/EmptyState";
 import LoadingState from "@/components/ui/LoadingState";
 import { api } from "@/lib/api";
@@ -45,6 +45,11 @@ export default function WriterDashboardPage() {
             }),
     });
 
+    const analyticsQuery = useQuery({
+        queryKey: ["writer", "analytics"],
+        queryFn: api.writerAnalytics,
+    });
+
     const items = myContentQuery.data?.items ?? [];
 
     return (
@@ -81,31 +86,72 @@ export default function WriterDashboardPage() {
                     </div>
                 </section>
 
-                <section className="grid gap-4 md:grid-cols-3">
-                    <div className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-5">
-                        <p className="text-sm text-white/45">Your role</p>
-                        <h2 className="mt-2 text-2xl font-semibold">{user?.role}</h2>
-                        <p className="mt-2 text-sm text-white/55">
-                            Your publishing permissions are based on this role.
-                        </p>
-                    </div>
+                {/* <section className="grid gap-4 md:grid-cols-3"> */}
+                <div className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-5">
+                    <p className="text-sm text-white/45">Your role</p>
+                    <h2 className="mt-2 text-2xl font-semibold">{user?.role}</h2>
+                    <p className="mt-2 text-sm text-white/55">
+                        Your publishing permissions are based on this role.
+                    </p>
+                </div>
 
+                <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                     <div className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-5">
-                        <p className="text-sm text-white/45">Content count</p>
-                        <h2 className="mt-2 text-2xl font-semibold">
-                            {myContentQuery.data?.total ?? 0}
+                        <p className="text-sm text-white/45">Total content</p>
+                        <h2 className="mt-2 text-3xl font-semibold">
+                            {analyticsQuery.data?.total_content ?? 0}
                         </h2>
-                        <p className="mt-2 text-sm text-white/55">
-                            Showing content under the selected filter.
-                        </p>
                     </div>
 
                     <div className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-5">
-                        <p className="text-sm text-white/45">Review model</p>
-                        <h2 className="mt-2 text-2xl font-semibold">Moderated</h2>
-                        <p className="mt-2 text-sm text-white/55">
-                            Content must pass review before publishing.
-                        </p>
+                        <p className="text-sm text-white/45">Published</p>
+                        <h2 className="mt-2 text-3xl font-semibold">
+                            {analyticsQuery.data?.published ?? 0}
+                        </h2>
+                    </div>
+
+                    <div className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-5">
+                        <p className="text-sm text-white/45">Pending review</p>
+                        <h2 className="mt-2 text-3xl font-semibold">
+                            {analyticsQuery.data?.pending ?? 0}
+                        </h2>
+                    </div>
+
+                    <div className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-5">
+                        <p className="text-sm text-white/45">Followers</p>
+                        <h2 className="mt-2 text-3xl font-semibold">
+                            {analyticsQuery.data?.followers ?? 0}
+                        </h2>
+                    </div>
+                </section>
+
+                <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                    <div className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-5">
+                        <p className="text-sm text-white/45">Drafts</p>
+                        <h2 className="mt-2 text-3xl font-semibold">
+                            {analyticsQuery.data?.drafts ?? 0}
+                        </h2>
+                    </div>
+
+                    <div className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-5">
+                        <p className="text-sm text-white/45">Rejected</p>
+                        <h2 className="mt-2 text-3xl font-semibold">
+                            {analyticsQuery.data?.rejected ?? 0}
+                        </h2>
+                    </div>
+
+                    <div className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-5">
+                        <p className="text-sm text-white/45">Likes received</p>
+                        <h2 className="mt-2 text-3xl font-semibold">
+                            {analyticsQuery.data?.likes_received ?? 0}
+                        </h2>
+                    </div>
+
+                    <div className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-5">
+                        <p className="text-sm text-white/45">Comments received</p>
+                        <h2 className="mt-2 text-3xl font-semibold">
+                            {analyticsQuery.data?.comments_received ?? 0}
+                        </h2>
                     </div>
                 </section>
 
@@ -162,8 +208,31 @@ export default function WriterDashboardPage() {
                                         {content.status}
                                     </span>
 
-                                    <ContentCard content={content} />
-                                </div>
+                                    <Link
+                                        href={`/writer/content/${content.id}/edit`}
+                                        className="group block rounded-[2rem] border border-white/10 bg-white/[0.04] p-5 transition hover:-translate-y-0.5 hover:bg-white/[0.07]"
+                                    >
+                                        <div className="flex flex-wrap items-center gap-2 text-xs uppercase tracking-[0.18em] text-white/40">
+                                            <span>{content.content_type}</span>
+                                            <span>•</span>
+                                            <span>{content.visibility}</span>
+                                        </div>
+
+                                        <h3 className="mt-4 text-xl font-semibold tracking-tight text-white">
+                                            {content.title}
+                                        </h3>
+
+                                        {content.excerpt ? (
+                                            <p className="mt-3 line-clamp-3 text-sm leading-6 text-white/60">
+                                                {content.excerpt}
+                                            </p>
+                                        ) : null}
+
+                                        <div className="mt-5 flex items-center justify-between text-xs text-white/40">
+                                            <span>{content.reading_time_minutes} min read</span>
+                                            <span className="text-white/60">Manage →</span>
+                                        </div>
+                                    </Link>                                </div>
                             ))}
                         </div>
                     ) : null}

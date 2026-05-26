@@ -11,6 +11,7 @@ import {
     ShieldCheck,
     UserCircle,
     Users,
+    Bell,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
@@ -33,6 +34,7 @@ const baseNavItems: NavItem[] = [
     { href: "/children", label: "Children", icon: ShieldCheck },
     { href: "/writers", label: "Writers", icon: BookOpen },
     { href: "/partnership", label: "Partnership", icon: Library },
+    { href: "/notifications", label: "Notifications", icon: Bell },
 ];
 
 function isActivePath(pathname: string, href: string) {
