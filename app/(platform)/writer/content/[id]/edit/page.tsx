@@ -233,6 +233,25 @@ export default function WriterContentEditPage() {
                                     Back to studio
                                 </Link>
 
+                                {contentQuery.data.content_type === "EDUCATION" ? (
+                                    <Link
+                                        href={`/writer/content/${contentQuery.data.id}/education`}
+                                        className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/75 hover:bg-white/10"
+                                    >
+                                        Attach education metadata
+                                    </Link>
+                                ) : null}
+
+                                {contentQuery.data.content_type === "CHILDREN" &&
+                                    contentQuery.data.status === "PUBLISHED" ? (
+                                    <Link
+                                        href={`/writer/content/${contentQuery.data.id}/children`}
+                                        className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/75 hover:bg-white/10"
+                                    >
+                                        Add to children library
+                                    </Link>
+                                ) : null}
+
                                 {contentQuery.data?.status === "PUBLISHED" ? (
                                     <Link
                                         href={`/read/${contentQuery.data?.slug}`}

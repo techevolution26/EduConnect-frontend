@@ -8,7 +8,11 @@ import RoleGuard from "@/components/auth/RoleGuard";
 import EmptyState from "@/components/ui/EmptyState";
 import LoadingState from "@/components/ui/LoadingState";
 import { api, ApiError } from "@/lib/api";
-import type { ContentStatus, ContentType } from "@/lib/types";
+import type {
+    ChildrenAgeGroup,
+    ContentStatus,
+    ContentType,
+} from "@/lib/types";
 
 const statusOptions: Array<ContentStatus | ""> = [
     "",
@@ -31,6 +35,18 @@ const contentTypeOptions: Array<ContentType | ""> = [
     "AUDIO",
 ];
 
+const ageGroupOptions: ChildrenAgeGroup[] = [
+    "AGE_3_5",
+    "AGE_6_9",
+    "AGE_10_13",
+];
+
+const ageGroupLabels: Record<ChildrenAgeGroup, string> = {
+    AGE_3_5: "3–5 years",
+    AGE_6_9: "6–9 years",
+    AGE_10_13: "10–13 years",
+};
+
 function statusBadge(status: ContentStatus) {
     const classes: Record<ContentStatus, string> = {
         DRAFT: "bg-white/10 text-white/70",
@@ -50,6 +66,9 @@ export default function AdminContentPage() {
     const [statusFilter, setStatusFilter] = useState<ContentStatus | "">("");
     const [typeFilter, setTypeFilter] = useState<ContentType | "">("");
     const [rejectReasonById, setRejectReasonById] = useState<Record<string, string>>({});
+    const [ageGroupByContentId, setAgeGroupByContentId] = useState<
+        Record<string, ChildrenAgeGroup>
+    >({});
 
     const contentQuery = useQuery({
         queryKey: ["admin", "content", search, statusFilter, typeFilter],
@@ -80,17 +99,37 @@ export default function AdminContentPage() {
         },
     });
 
+    const attachChildrenMutation = useMutation({
+        mutationFn: ({
+            contentId,
+            ageGroup,
+        }: {
+            contentId: string;
+            ageGroup: ChildrenAgeGroup;
+        }) =>
+            api.createChildrenContent({
+                content_id: contentId,
+                age_group: ageGroup,
+            }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["children"] });
+            queryClient.invalidateQueries({ queryKey: ["admin", "content"] });
+        },
+    });
+
     const mutationError =
         approveMutation.error instanceof ApiError
             ? approveMutation.error.detail
             : rejectMutation.error instanceof ApiError
                 ? rejectMutation.error.detail
-                : "Action failed.";
+                : attachChildrenMutation.error instanceof ApiError
+                    ? attachChildrenMutation.error.detail
+                    : "Action failed.";
 
     const items = contentQuery.data?.items ?? [];
 
     return (
-        <RoleGuard allowedRoles={["ADMIN"]}>
+        <RoleGuard allowedRoles={["ADMIN", "MODERATOR"]}>
             <div className="space-y-8">
                 <section className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 shadow-2xl">
                     <p className="text-xs uppercase tracking-[0.28em] text-white/40">
@@ -102,8 +141,9 @@ export default function AdminContentPage() {
                     </h1>
 
                     <p className="mt-4 max-w-2xl text-sm leading-6 text-white/60">
-                        View drafts, pending submissions, published posts, rejected content,
-                        and archived content across the ecosystem.
+                        Review submissions, publish approved content, reject unsafe content,
+                        and place published children’s content into the age-grouped children
+                        library.
                     </p>
                 </section>
 
@@ -124,7 +164,11 @@ export default function AdminContentPage() {
                             className="rounded-2xl border border-white/10 bg-[#111113] px-4 py-3 text-sm text-white outline-none focus:border-white/30"
                         >
                             {statusOptions.map((status) => (
-                                <option key={status || "ALL"} value={status}>
+                                <option
+                                    className="bg-[#111113] text-white"
+                                    key={status || "ALL"}
+                                    value={status}
+                                >
                                     {status || "All statuses"}
                                 </option>
                             ))}
@@ -138,7 +182,11 @@ export default function AdminContentPage() {
                             className="rounded-2xl border border-white/10 bg-[#111113] px-4 py-3 text-sm text-white outline-none focus:border-white/30"
                         >
                             {contentTypeOptions.map((type) => (
-                                <option key={type || "ALL"} value={type}>
+                                <option
+                                    className="bg-[#111113] text-white"
+                                    key={type || "ALL"}
+                                    value={type}
+                                >
                                     {type || "All types"}
                                 </option>
                             ))}
@@ -156,115 +204,201 @@ export default function AdminContentPage() {
                     </div>
                 ) : null}
 
-                {approveMutation.isError || rejectMutation.isError ? (
+                {approveMutation.isError ||
+                    rejectMutation.isError ||
+                    attachChildrenMutation.isError ? (
                     <div className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
                         {mutationError}
                     </div>
                 ) : null}
 
+                {attachChildrenMutation.isSuccess ? (
+                    <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+                        Content added to children’s library.
+                    </div>
+                ) : null}
+
                 {items.length > 0 ? (
                     <section className="space-y-4">
-                        {items.map((content) => (
-                            <article
-                                key={content.id}
-                                className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-5"
-                            >
-                                <div className="flex flex-wrap items-center gap-2 text-xs uppercase tracking-[0.18em] text-white/40">
-                                    <span>{content.content_type}</span>
-                                    <span>•</span>
-                                    <span>{content.visibility}</span>
-                                    {content.is_premium ? (
-                                        <>
-                                            <span>•</span>
-                                            <span>Premium</span>
-                                        </>
-                                    ) : null}
-                                </div>
+                        {items.map((content) => {
+                            const selectedAgeGroup =
+                                ageGroupByContentId[content.id] ?? "AGE_6_9";
 
-                                <div className="mt-3 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                                    <div>
-                                        <h2 className="text-2xl font-semibold">{content.title}</h2>
-                                        <p className="mt-1 text-xs text-white/35">/{content.slug}</p>
+                            const canAttachToChildren =
+                                content.content_type === "CHILDREN" &&
+                                content.status === "PUBLISHED";
+
+                            return (
+                                <article
+                                    key={content.id}
+                                    className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-5"
+                                >
+                                    <div className="flex flex-wrap items-center gap-2 text-xs uppercase tracking-[0.18em] text-white/40">
+                                        <span>{content.content_type}</span>
+                                        <span>•</span>
+                                        <span>{content.visibility}</span>
+                                        {content.is_premium ? (
+                                            <>
+                                                <span>•</span>
+                                                <span>Premium</span>
+                                            </>
+                                        ) : null}
                                     </div>
 
-                                    <span
-                                        className={`w-fit rounded-full px-3 py-1 text-xs ${statusBadge(
-                                            content.status,
-                                        )}`}
-                                    >
-                                        {content.status}
-                                    </span>
-                                </div>
+                                    <div className="mt-3 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                                        <div>
+                                            <h2 className="text-2xl font-semibold">{content.title}</h2>
+                                            <p className="mt-1 text-xs text-white/35">
+                                                /{content.slug}
+                                            </p>
+                                        </div>
 
-                                {content.excerpt ? (
-                                    <p className="mt-3 text-sm leading-6 text-white/60">
-                                        {content.excerpt}
-                                    </p>
-                                ) : null}
+                                        <span
+                                            className={`w-fit rounded-full px-3 py-1 text-xs ${statusBadge(
+                                                content.status,
+                                            )}`}
+                                        >
+                                            {content.status}
+                                        </span>
+                                    </div>
 
-                                <div className="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4">
-                                    <p className="line-clamp-4 text-sm leading-6 text-white/55">
-                                        {content.body}
-                                    </p>
-                                </div>
+                                    {content.excerpt ? (
+                                        <p className="mt-3 text-sm leading-6 text-white/60">
+                                            {content.excerpt}
+                                        </p>
+                                    ) : null}
 
-                                <div className="mt-5 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                                    <div className="flex flex-wrap gap-2">
-                                        {content.status === "PUBLISHED" ? (
-                                            <Link
-                                                href={`/read/${content.slug}`}
-                                                className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/75 hover:bg-white/10"
-                                            >
-                                                Open public page
-                                            </Link>
-                                        ) : null}
+                                    <div className="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4">
+                                        <p className="line-clamp-4 text-sm leading-6 text-white/55">
+                                            {content.body}
+                                        </p>
+                                    </div>
+
+                                    <div className="mt-5 flex flex-col gap-4">
+                                        <div className="flex flex-wrap gap-2">
+                                            {content.status === "PUBLISHED" ? (
+                                                <Link
+                                                    href={`/read/${content.slug}`}
+                                                    className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/75 hover:bg-white/10"
+                                                >
+                                                    Open public page
+                                                </Link>
+                                            ) : null}
+
+                                            {content.status === "PENDING_REVIEW" ? (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => approveMutation.mutate(content.id)}
+                                                    disabled={approveMutation.isPending}
+                                                    className="rounded-2xl bg-white px-4 py-2 text-sm font-semibold text-black disabled:opacity-60"
+                                                >
+                                                    Approve
+                                                </button>
+                                            ) : null}
+                                        </div>
 
                                         {content.status === "PENDING_REVIEW" ? (
-                                            <button
-                                                type="button"
-                                                onClick={() => approveMutation.mutate(content.id)}
-                                                disabled={approveMutation.isPending}
-                                                className="rounded-2xl bg-white px-4 py-2 text-sm font-semibold text-black disabled:opacity-60"
-                                            >
-                                                Approve
-                                            </button>
+                                            <div className="grid gap-2 md:grid-cols-[1fr_auto]">
+                                                <input
+                                                    value={rejectReasonById[content.id] ?? ""}
+                                                    onChange={(event) =>
+                                                        setRejectReasonById((current) => ({
+                                                            ...current,
+                                                            [content.id]: event.target.value,
+                                                        }))
+                                                    }
+                                                    placeholder="Rejection reason..."
+                                                    className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white outline-none focus:border-white/30"
+                                                />
+
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        rejectMutation.mutate({
+                                                            contentId: content.id,
+                                                            reason:
+                                                                rejectReasonById[content.id] ||
+                                                                "Content does not meet publishing guidelines.",
+                                                        })
+                                                    }
+                                                    disabled={rejectMutation.isPending}
+                                                    className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm font-semibold text-red-100 disabled:opacity-60"
+                                                >
+                                                    Reject
+                                                </button>
+                                            </div>
+                                        ) : null}
+
+                                        {content.content_type === "CHILDREN" ? (
+                                            <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                                                <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+                                                    <div>
+                                                        <h3 className="text-sm font-semibold text-white">
+                                                            Children’s library
+                                                        </h3>
+                                                        <p className="mt-1 text-xs leading-5 text-white/45">
+                                                            Published CHILDREN content can be added to the
+                                                            curated age-grouped children’s space.
+                                                        </p>
+                                                    </div>
+
+                                                    <div className="grid gap-2 sm:grid-cols-[180px_auto]">
+                                                        <select
+                                                            value={selectedAgeGroup}
+                                                            onChange={(event) =>
+                                                                setAgeGroupByContentId((current) => ({
+                                                                    ...current,
+                                                                    [content.id]: event.target
+                                                                        .value as ChildrenAgeGroup,
+                                                                }))
+                                                            }
+                                                            disabled={!canAttachToChildren}
+                                                            className="rounded-2xl border border-white/10 bg-[#111113] px-4 py-2 text-sm text-white outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                                                        >
+                                                            {ageGroupOptions.map((option) => (
+                                                                <option
+                                                                    className="bg-[#111113] text-white"
+                                                                    key={option}
+                                                                    value={option}
+                                                                >
+                                                                    {ageGroupLabels[option]}
+                                                                </option>
+                                                            ))}
+                                                        </select>
+
+                                                        <button
+                                                            type="button"
+                                                            onClick={() =>
+                                                                attachChildrenMutation.mutate({
+                                                                    contentId: content.id,
+                                                                    ageGroup: selectedAgeGroup,
+                                                                })
+                                                            }
+                                                            disabled={
+                                                                !canAttachToChildren ||
+                                                                attachChildrenMutation.isPending
+                                                            }
+                                                            className="rounded-2xl bg-white px-4 py-2 text-sm font-semibold text-black disabled:cursor-not-allowed disabled:opacity-50"
+                                                        >
+                                                            {attachChildrenMutation.isPending
+                                                                ? "Saving..."
+                                                                : "Add to children"}
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                {!canAttachToChildren ? (
+                                                    <p className="mt-3 text-xs text-amber-200/80">
+                                                        This action is enabled only after the CHILDREN
+                                                        content is published.
+                                                    </p>
+                                                ) : null}
+                                            </div>
                                         ) : null}
                                     </div>
-
-                                    {content.status === "PENDING_REVIEW" ? (
-                                        <div className="grid gap-2 md:grid-cols-[1fr_auto] lg:min-w-[520px]">
-                                            <input
-                                                value={rejectReasonById[content.id] ?? ""}
-                                                onChange={(event) =>
-                                                    setRejectReasonById((current) => ({
-                                                        ...current,
-                                                        [content.id]: event.target.value,
-                                                    }))
-                                                }
-                                                placeholder="Rejection reason..."
-                                                className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white outline-none focus:border-white/30"
-                                            />
-
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    rejectMutation.mutate({
-                                                        contentId: content.id,
-                                                        reason:
-                                                            rejectReasonById[content.id] ||
-                                                            "Content does not meet publishing guidelines.",
-                                                    })
-                                                }
-                                                disabled={rejectMutation.isPending}
-                                                className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm font-semibold text-red-100 disabled:opacity-60"
-                                            >
-                                                Reject
-                                            </button>
-                                        </div>
-                                    ) : null}
-                                </div>
-                            </article>
-                        ))}
+                                </article>
+                            );
+                        })}
                     </section>
                 ) : null}
 

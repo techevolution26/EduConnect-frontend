@@ -17,6 +17,12 @@ import type {
   Notification,
   ModerationLog,
   WriterAnalytics,
+  EducationResource,
+  ChildrenContent,
+  Partnership,
+  PartnershipPlan,
+  PartnershipAccess,
+  PartnershipPlanRead,
 } from "@/lib/types";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -497,9 +503,101 @@ export const api = {
     });
   },
 
- writerAnalytics() {
-  return apiRequest<WriterAnalytics>("/content/analytics/me", {
-    auth: true,
-  });
-},
+  writerAnalytics() {
+    return apiRequest<WriterAnalytics>("/content/analytics/me", {
+      auth: true,
+    });
+  },
+
+  createEducationResource(payload: {
+    content_id: string;
+    curriculum: string;
+    grade_level?: string | null;
+    subject?: string | null;
+    resource_type: string;
+    download_url?: string | null;
+  }) {
+    return apiRequest<EducationResource>("/education/resources", {
+      method: "POST",
+      body: payload,
+      auth: true,
+    });
+  },
+
+  educationResources(params?: {
+    curriculum?: string;
+    subject?: string;
+    grade_level?: string;
+  }) {
+    const searchParams = new URLSearchParams();
+
+    Object.entries(params ?? {}).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== "") {
+        searchParams.set(key, String(value));
+      }
+    });
+
+    const query = searchParams.toString();
+
+    return apiRequest<EducationResource[]>(
+      `/education/resources${query ? `?${query}` : ""}`,
+    );
+  },
+
+  createChildrenContent(payload: {
+    content_id: string;
+    age_group: string;
+  }) {
+    return apiRequest<ChildrenContent>("/children/content", {
+      method: "POST",
+      body: payload,
+      auth: true,
+    });
+  },
+
+  childrenContent(params?: {
+    age_group?: string;
+  }) {
+    const searchParams = new URLSearchParams();
+
+    Object.entries(params ?? {}).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== "") {
+        searchParams.set(key, String(value));
+      }
+    });
+
+    const query = searchParams.toString();
+
+    return apiRequest<ChildrenContent[]>(
+      `/children/content${query ? `?${query}` : ""}`,
+    );
+  },
+
+  partnershipPlans() {
+    return apiRequest<PartnershipPlanRead[]>("/partnerships/plans");
+  },
+
+  myPartnership() {
+    return apiRequest<PartnershipAccess>("/partnerships/me", {
+      auth: true,
+    });
+  },
+
+  startPartnership(payload: {
+    plan: PartnershipPlan;
+    referral_creator_id?: string | null;
+  }) {
+    return apiRequest<Partnership>("/partnerships/start", {
+      method: "POST",
+      body: payload,
+      auth: true,
+    });
+  },
+
+  cancelPartnership() {
+    return apiRequest<Partnership>("/partnerships/cancel", {
+      method: "POST",
+      auth: true,
+    });
+  },
 };

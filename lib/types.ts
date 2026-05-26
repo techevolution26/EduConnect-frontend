@@ -225,3 +225,84 @@ export type WriterAnalytics = {
   comments_received: number;
   bookmarks_received: number;
 };
+
+export type CurriculumType =
+  | "CBC"
+  | "CBE"
+  | "CAMBRIDGE"
+  | "AMERICAN"
+  | "HOMESCHOOL"
+  | "OTHER";
+
+export type EducationResourceType =
+  | "LESSON_NOTE"
+  | "REVISION"
+  | "STUDY_GUIDE"
+  | "SCHEME_OF_WORK"
+  | "PRINTABLE"
+  | "ASSESSMENT"
+  | "ARTICLE";
+
+export type EducationResource = {
+  id: string;
+  content_id: string;
+  curriculum: CurriculumType;
+  grade_level: string | null;
+  subject: string | null;
+  resource_type: EducationResourceType;
+  download_url: string | null;
+  created_at: string;
+  updated_at: string;
+  content?: Content | null;
+};
+
+export type ChildrenAgeGroup = "AGE_3_5" | "AGE_6_9" | "AGE_10_13";
+
+export type ChildrenContent = {
+  id: string;
+  content_id: string;
+  age_group: ChildrenAgeGroup;
+  created_at: string;
+  updated_at: string;
+  content?: Content | null;
+};
+
+export type PartnershipPlan =
+  | "FREE"
+  | "MONTHLY_PARTNER"
+  | "ANNUAL_PARTNER"
+  | "STUDENT_PARTNER"
+  | "TEACHER_PARTNER";
+
+export type PartnershipStatus =
+  | "ACTIVE"
+  | "EXPIRED"
+  | "CANCELLED"
+  | "PENDING";
+
+export type PartnershipPlanRead = {
+  plan: PartnershipPlan;
+  label: string;
+  description: string;
+  recommended_for: string;
+};
+
+export type PartnershipAccess = {
+  has_active_partnership: boolean;
+  active_plan: PartnershipPlan | null;
+  expires_at: string | null;
+};
+
+export type Partnership = {
+  id: string;
+  user_id: string;
+  plan: PartnershipPlan;
+  status: PartnershipStatus;
+  referral_creator_id: string | null;
+  provider: string | null;
+  provider_reference: string | null;
+  started_at: string | null;
+  expires_at: string | null;
+  created_at: string;
+  updated_at: string;
+};

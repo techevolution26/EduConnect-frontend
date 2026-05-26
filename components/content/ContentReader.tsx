@@ -1,4 +1,5 @@
 import type { ContentDetail } from "@/lib/types";
+import Link from "next/link";
 
 export default function ContentReader({ content }: { content: ContentDetail }) {
     return (
@@ -45,6 +46,13 @@ export default function ContentReader({ content }: { content: ContentDetail }) {
                         Become a partner to read the full piece and support creators,
                         education, and community storytelling.
                     </p>
+
+                    <Link
+                        href="/partnership"
+                        className="mt-5 inline-flex rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-black"
+                    >
+                        Become a partner
+                    </Link>
                 </section>
             ) : (
                 <section className="prose prose-invert mt-8 max-w-none">
