@@ -13,6 +13,7 @@ import {
     Users,
     Bell,
     Bookmark,
+    UserCog,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
@@ -102,6 +103,7 @@ export default function Sidebar() {
                 { href: "/admin/content", label: "Manage Content", icon: FileText },
                 { href: "/admin/categories", label: "Manage Categories", icon: Library },
                 { href: "/admin/hubs", label: "Manage Hubs", icon: Users },
+                { href: "/admin/role-requests", label: "Role Requests", icon: UserCog },
             ]
             : []),
         { href: "/profile", label: "Profile", icon: UserCircle },

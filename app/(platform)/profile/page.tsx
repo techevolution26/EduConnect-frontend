@@ -331,7 +331,27 @@ export default function ProfilePage() {
                             </p>
                         )}
                     </div>
+
+
                 </div>
+
+
+            </section>
+            {/* security section */}
+            <section className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-5 sm:p-6">
+                <Link
+                    href="/profile/security"
+                    className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/75 transition hover:bg-white/10"
+                >
+                    Security settings
+                </Link>
+
+                <Link
+                    href="/profile/role-request"
+                    className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/75 hover:bg-white/10"
+                >
+                    Request role upgrade
+                </Link>
             </section>
 
             <section className="grid gap-4 md:grid-cols-3">
@@ -418,8 +438,10 @@ export default function ProfilePage() {
                             {user.role}
                         </p>
                     </div>
+
                 </aside>
             </section>
+
         </div>
     );
 }

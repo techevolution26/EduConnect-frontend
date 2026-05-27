@@ -312,3 +312,23 @@ export type WriterRelationship = {
   following: boolean;
   is_self: boolean;
 };
+
+export type RoleRequestStatus = "PENDING" | "APPROVED" | "REJECTED";
+
+export type RoleUpgradeRequest = {
+  id: string;
+  user_id: string;
+  requested_role: UserRole;
+  reason: string;
+  status: RoleRequestStatus;
+  admin_note: string | null;
+  reviewed_by_id: string | null;
+  created_at: string;
+  updated_at: string;
+  user?: User | null;
+};
+
+export type RoleUpgradeRequestListResponse = {
+  items: RoleUpgradeRequest[];
+  total: number;
+};

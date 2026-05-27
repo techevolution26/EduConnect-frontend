@@ -24,6 +24,10 @@ import type {
   PartnershipAccess,
   PartnershipPlanRead,
   WriterRelationship,
+  RoleRequestStatus,
+  RoleUpgradeRequest,
+  RoleUpgradeRequestListResponse,
+
 } from "@/lib/types";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -603,50 +607,125 @@ export const api = {
   },
 
   myBookmarks() {
-  return apiRequest<Content[]>("/users/me/bookmarks", {
-    auth: true,
-  });
-},
+    return apiRequest<Content[]>("/users/me/bookmarks", {
+      auth: true,
+    });
+  },
 
-unbookmarkContent(contentId: string) {
-  return apiRequest<void>(`/content/${contentId}/bookmark`, {
-    method: "DELETE",
-    auth: true,
-  });
-},
+  unbookmarkContent(contentId: string) {
+    return apiRequest<void>(`/content/${contentId}/bookmark`, {
+      method: "DELETE",
+      auth: true,
+    });
+  },
 
-unlikeContent(contentId: string) {
-  return apiRequest<void>(`/content/${contentId}/like`, {
-    method: "DELETE",
-    auth: true,
-  });
-},
+  unlikeContent(contentId: string) {
+    return apiRequest<void>(`/content/${contentId}/like`, {
+      method: "DELETE",
+      auth: true,
+    });
+  },
 
-contentCounts(contentId: string) {
-  return apiRequest<{
-    likes: number;
-    bookmarks: number;
-    comments: number;
-  }>(`/content/${contentId}/counts`);
-},
+  contentCounts(contentId: string) {
+    return apiRequest<{
+      likes: number;
+      bookmarks: number;
+      comments: number;
+    }>(`/content/${contentId}/counts`);
+  },
 
-followWriter(writerId: string) {
-  return apiRequest<{ message: string }>(`/writers/${writerId}/follow`, {
+  followWriter(writerId: string) {
+    return apiRequest<{ message: string }>(`/writers/${writerId}/follow`, {
+      method: "POST",
+      auth: true,
+    });
+  },
+
+  unfollowWriter(writerId: string) {
+    return apiRequest<void>(`/writers/${writerId}/follow`, {
+      method: "DELETE",
+      auth: true,
+    });
+  },
+
+  writerRelationship(writerId: string) {
+    return apiRequest<WriterRelationship>(`/writers/${writerId}/relationship`, {
+      auth: true,
+    });
+  },
+
+  changePassword(payload: {
+    current_password: string;
+    new_password: string;
+  }) {
+    return apiRequest<{ message: string }>("/users/me/password", {
+      method: "PATCH",
+      body: payload,
+      auth: true,
+    });
+  },
+
+  createRoleRequest(payload: {
+  requested_role: UserRole;
+  reason: string;
+}) {
+  return apiRequest<RoleUpgradeRequest>("/role-requests", {
     method: "POST",
+    body: payload,
     auth: true,
   });
 },
 
-unfollowWriter(writerId: string) {
-  return apiRequest<void>(`/writers/${writerId}/follow`, {
-    method: "DELETE",
+myRoleRequests() {
+  return apiRequest<RoleUpgradeRequest[]>("/role-requests/me", {
     auth: true,
   });
 },
 
-writerRelationship(writerId: string) {
-  return apiRequest<WriterRelationship>(`/writers/${writerId}/relationship`, {
-    auth: true,
+adminRoleRequests(params?: {
+  status_filter?: RoleRequestStatus;
+}) {
+  const searchParams = new URLSearchParams();
+
+  Object.entries(params ?? {}).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) {
+      searchParams.set(key, String(value));
+    }
   });
+
+  const query = searchParams.toString();
+
+  return apiRequest<RoleUpgradeRequestListResponse>(
+    `/role-requests/admin${query ? `?${query}` : ""}`,
+    {
+      auth: true,
+    },
+  );
+},
+
+approveRoleRequest(requestId: string, adminNote?: string | null) {
+  return apiRequest<RoleUpgradeRequest>(
+    `/role-requests/admin/${requestId}/approve`,
+    {
+      method: "POST",
+      body: {
+        admin_note: adminNote ?? null,
+      },
+      auth: true,
+    },
+  );
+},
+
+rejectRoleRequest(requestId: string, adminNote?: string | null) {
+  return apiRequest<RoleUpgradeRequest>(
+    `/role-requests/admin/${requestId}/reject`,
+    {
+      method: "POST",
+      body: {
+        admin_note: adminNote ?? null,
+      },
+      auth: true,
+    },
+  );
 },
 };
