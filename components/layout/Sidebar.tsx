@@ -12,6 +12,7 @@ import {
     UserCircle,
     Users,
     Bell,
+    Bookmark,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
@@ -28,6 +29,7 @@ type NavItem = {
 
 const baseNavItems: NavItem[] = [
     { href: "/feed", label: "Feed", icon: Home },
+    { href: "/library", label: "Library", icon: Bookmark },
     { href: "/categories", label: "Categories", icon: Library },
     { href: "/hubs", label: "Hubs", icon: Users },
     { href: "/education", label: "Education", icon: GraduationCap },

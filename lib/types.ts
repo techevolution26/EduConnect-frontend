@@ -37,6 +37,7 @@ export type User = {
   is_active: boolean;
   is_verified: boolean;
   created_at: string;
+  updated_at: string;
 };
 
 export type Category = {
@@ -305,4 +306,9 @@ export type Partnership = {
   expires_at: string | null;
   created_at: string;
   updated_at: string;
+};
+
+export type WriterRelationship = {
+  following: boolean;
+  is_self: boolean;
 };

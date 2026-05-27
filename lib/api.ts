@@ -23,6 +23,7 @@ import type {
   PartnershipPlan,
   PartnershipAccess,
   PartnershipPlanRead,
+  WriterRelationship,
 } from "@/lib/types";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -600,4 +601,52 @@ export const api = {
       auth: true,
     });
   },
+
+  myBookmarks() {
+  return apiRequest<Content[]>("/users/me/bookmarks", {
+    auth: true,
+  });
+},
+
+unbookmarkContent(contentId: string) {
+  return apiRequest<void>(`/content/${contentId}/bookmark`, {
+    method: "DELETE",
+    auth: true,
+  });
+},
+
+unlikeContent(contentId: string) {
+  return apiRequest<void>(`/content/${contentId}/like`, {
+    method: "DELETE",
+    auth: true,
+  });
+},
+
+contentCounts(contentId: string) {
+  return apiRequest<{
+    likes: number;
+    bookmarks: number;
+    comments: number;
+  }>(`/content/${contentId}/counts`);
+},
+
+followWriter(writerId: string) {
+  return apiRequest<{ message: string }>(`/writers/${writerId}/follow`, {
+    method: "POST",
+    auth: true,
+  });
+},
+
+unfollowWriter(writerId: string) {
+  return apiRequest<void>(`/writers/${writerId}/follow`, {
+    method: "DELETE",
+    auth: true,
+  });
+},
+
+writerRelationship(writerId: string) {
+  return apiRequest<WriterRelationship>(`/writers/${writerId}/relationship`, {
+    auth: true,
+  });
+},
 };
