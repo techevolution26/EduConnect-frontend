@@ -332,3 +332,13 @@ export type RoleUpgradeRequestListResponse = {
   items: RoleUpgradeRequest[];
   total: number;
 };
+
+export type GlobalSearchResponse = {
+  query: string;
+  content: Content[];
+  writers: WriterProfile[];
+  hubs: Hub[];
+  categories: Category[];
+  education_resources: EducationResource[];
+  children_content: ChildrenContent[];
+};

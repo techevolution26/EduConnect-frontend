@@ -27,6 +27,7 @@ import type {
   RoleRequestStatus,
   RoleUpgradeRequest,
   RoleUpgradeRequestListResponse,
+  GlobalSearchResponse,
 
 } from "@/lib/types";
 
@@ -728,4 +729,41 @@ rejectRoleRequest(requestId: string, adminNote?: string | null) {
     },
   );
 },
+
+searchContent(params: {
+  q: string;
+  content_type?: string;
+  category_id?: string;
+  skip?: number;
+  limit?: number;
+}) {
+  const searchParams = new URLSearchParams();
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== "") {
+      searchParams.set(key, String(value));
+    }
+  });
+
+  return apiRequest<{
+    query: string;
+    items: Content[];
+    total: number;
+  }>(`/search/content?${searchParams.toString()}`);
+},
+
+globalSearch(params: { q: string; limit?: number }) {
+  const searchParams = new URLSearchParams();
+
+  searchParams.set("q", params.q);
+
+  if (params.limit) {
+    searchParams.set("limit", String(params.limit));
+  }
+
+  return apiRequest<GlobalSearchResponse>(
+    `/search/global?${searchParams.toString()}`,
+  );
+},
+
 };

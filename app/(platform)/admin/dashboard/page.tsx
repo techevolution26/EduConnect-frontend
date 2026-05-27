@@ -8,6 +8,15 @@ import RoleGuard from "@/components/auth/RoleGuard";
 import LoadingState from "@/components/ui/LoadingState";
 import { api, ApiError } from "@/lib/api";
 import type { UserRole } from "@/lib/types";
+import {
+    FileText,
+    FolderTree,
+    LayoutGrid,
+    PenLine,
+    ShieldCheck,
+    UserCog,
+    Users,
+} from "lucide-react";
 
 const roleOptions: UserRole[] = [
     "READER",
@@ -36,6 +45,33 @@ function StatCard({
             </h2>
             {helper ? <p className="mt-2 text-xs text-white/40">{helper}</p> : null}
         </div>
+    );
+}
+
+function AdminActionCard({
+    href,
+    title,
+    description,
+    icon: Icon,
+}: {
+    href: string;
+    title: string;
+    description: string;
+    icon: React.ComponentType<{ className?: string }>;
+}) {
+    return (
+        <Link
+            href={href}
+            className="group rounded-[2rem] border border-white/10 bg-white/[0.04] p-5 transition hover:-translate-y-0.5 hover:bg-white/[0.07]"
+        >
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 text-white/70 transition group-hover:bg-white group-hover:text-black">
+                <Icon className="h-5 w-5" />
+            </div>
+
+            <h3 className="mt-4 text-lg font-semibold text-white">{title}</h3>
+
+            <p className="mt-2 text-sm leading-6 text-white/55">{description}</p>
+        </Link>
     );
 }
 
@@ -144,10 +180,10 @@ export default function AdminDashboardPage() {
                         </Link>
 
                         <Link
-                            href="/writer/publish"
+                            href="/admin/content"
                             className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/75 hover:bg-white/10"
                         >
-                            Create content
+                            Manage content
                         </Link>
                     </div>
                 </section>
@@ -155,6 +191,63 @@ export default function AdminDashboardPage() {
                 {dashboardQuery.isLoading ? (
                     <LoadingState label="Loading dashboard stats..." />
                 ) : null}
+                <section className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-5 sm:p-6">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                        <div>
+                            <p className="text-xs uppercase tracking-[0.24em] text-white/40">
+                                Admin command center
+                            </p>
+
+                            <h2 className="mt-2 text-2xl font-semibold">Platform management</h2>
+                        </div>
+
+
+                    </div>
+
+                    <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                        <AdminActionCard
+                            href="/admin/content"
+                            title="Manage content"
+                            description="View all drafts, pending, published, rejected, and archived content."
+                            icon={FileText}
+                        />
+
+                        <AdminActionCard
+                            href="/admin/review"
+                            title="Review queue"
+                            description="Approve or reject submitted content before it appears publicly."
+                            icon={ShieldCheck}
+                        />
+
+                        <AdminActionCard
+                            href="/admin/categories"
+                            title="Categories"
+                            description="Create and manage platform-wide content categories."
+                            icon={FolderTree}
+                        />
+
+                        <AdminActionCard
+                            href="/admin/hubs"
+                            title="Community hubs"
+                            description="Create and manage structured spaces for readers and creators."
+                            icon={Users}
+                        />
+
+                        <AdminActionCard
+                            href="/admin/role-requests"
+                            title="Role requests"
+                            description="Approve users who request writer, teacher, student, or parent roles."
+                            icon={UserCog}
+                        />
+
+                        <AdminActionCard
+                            href="/writer/publish"
+                            title="Create content"
+                            description="Publish directly as an admin or seed important platform content."
+                            icon={PenLine}
+                        />
+                    </div>
+                </section>
 
                 {dashboardQuery.data ? (
                     <>

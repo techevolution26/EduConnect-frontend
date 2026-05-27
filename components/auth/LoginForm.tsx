@@ -1,22 +1,26 @@
 "use client";
-
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 
 import { api, ApiError } from "@/lib/api";
 import { saveAuthSession } from "@/lib/auth";
-
 export default function LoginForm() {
     const router = useRouter();
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const queryClient = useQueryClient();
+
 
     const mutation = useMutation({
         mutationFn: api.login,
         onSuccess: (session) => {
             saveAuthSession(session);
+
+            queryClient.setQueryData(["auth", "me"], session.user);
+            queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
+
             router.push("/feed");
         },
     });
@@ -34,6 +38,7 @@ export default function LoginForm() {
         mutation.error instanceof ApiError
             ? mutation.error.detail
             : "Login failed.";
+
 
     return (
         <form onSubmit={handleSubmit} className="space-y-5">

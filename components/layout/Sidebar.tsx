@@ -1,19 +1,15 @@
 "use client";
 
 import {
-    BookOpen,
-    FileText,
+    Bookmark,
     Gauge,
-    GraduationCap,
     Home,
     Library,
     PenLine,
+    Search,
     ShieldCheck,
     UserCircle,
     Users,
-    Bell,
-    Bookmark,
-    UserCog,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
@@ -28,16 +24,12 @@ type NavItem = {
     icon: LucideIcon;
 };
 
-const baseNavItems: NavItem[] = [
+const primaryNavItems: NavItem[] = [
     { href: "/feed", label: "Feed", icon: Home },
     { href: "/library", label: "Library", icon: Bookmark },
-    { href: "/categories", label: "Categories", icon: Library },
+    { href: "/search", label: "Search", icon: Search },
     { href: "/hubs", label: "Hubs", icon: Users },
-    { href: "/education", label: "Education", icon: GraduationCap },
-    { href: "/children", label: "Children", icon: ShieldCheck },
-    { href: "/writers", label: "Writers", icon: BookOpen },
     { href: "/partnership", label: "Partnership", icon: Library },
-    { href: "/notifications", label: "Notifications", icon: Bell },
 ];
 
 function isActivePath(pathname: string, href: string) {
@@ -60,13 +52,13 @@ function NavLink({
         return (
             <Link
                 href={item.href}
-                className={`flex min-w-[4.6rem] flex-col items-center justify-center gap-1 rounded-2xl px-3 py-2 text-[11px] transition ${active
+                className={`flex min-w-[4.8rem] flex-col items-center justify-center gap-1 rounded-2xl px-3 py-2 text-[11px] transition ${active
                     ? "bg-white text-black"
                     : "text-white/60 hover:bg-white/10 hover:text-white"
                     }`}
             >
                 <Icon className="h-4 w-4" />
-                <span className="max-w-[4rem] truncate">{item.label}</span>
+                <span className="max-w-[4.2rem] truncate">{item.label}</span>
             </Link>
         );
     }
@@ -85,12 +77,41 @@ function NavLink({
     );
 }
 
+function NavSection({
+    title,
+    items,
+    pathname,
+}: {
+    title: string;
+    items: NavItem[];
+    pathname: string;
+}) {
+    if (items.length === 0) return null;
+
+    return (
+        <section className="space-y-2">
+            <p className="px-4 text-[10px] uppercase tracking-[0.24em] text-white/30">
+                {title}
+            </p>
+
+            <div className="space-y-1">
+                {items.map((item) => (
+                    <NavLink
+                        key={item.href}
+                        item={item}
+                        active={isActivePath(pathname, item.href)}
+                    />
+                ))}
+            </div>
+        </section>
+    );
+}
+
 export default function Sidebar() {
     const pathname = usePathname();
     const user = getStoredUser();
 
-    const navItems: NavItem[] = [
-        ...baseNavItems,
+    const workspaceItems: NavItem[] = [
         ...(canPublish(user)
             ? [{ href: "/writer/dashboard", label: "Writer Studio", icon: PenLine }]
             : []),
@@ -98,34 +119,35 @@ export default function Sidebar() {
             ? [{ href: "/admin/review", label: "Review Queue", icon: ShieldCheck }]
             : []),
         ...(isAdmin(user)
-            ? [
-                { href: "/admin/dashboard", label: "Admin Dashboard", icon: Gauge },
-                { href: "/admin/content", label: "Manage Content", icon: FileText },
-                { href: "/admin/categories", label: "Manage Categories", icon: Library },
-                { href: "/admin/hubs", label: "Manage Hubs", icon: Users },
-                { href: "/admin/role-requests", label: "Role Requests", icon: UserCog },
-            ]
+            ? [{ href: "/admin/dashboard", label: "Admin Dashboard", icon: Gauge }]
             : []),
+    ];
+
+    const accountItems: NavItem[] = [
         { href: "/profile", label: "Profile", icon: UserCircle },
     ];
 
-    const mobileItems = navItems.filter((item) =>
-        [
-            "/feed",
-            "/categories",
-            "/hubs",
-            "/writer/dashboard",
-            "/admin/dashboard",
-            "/profile",
-        ].includes(item.href),
-    );
+    const mobileItems: NavItem[] = [
+        { href: "/feed", label: "Feed", icon: Home },
+        { href: "/library", label: "Library", icon: Bookmark },
+        { href: "/search", label: "Search", icon: Search },
+        ...(canPublish(user)
+            ? [{ href: "/writer/dashboard", label: "Studio", icon: PenLine }]
+            : []),
+        ...(isAdmin(user)
+            ? [{ href: "/admin/dashboard", label: "Admin", icon: Gauge }]
+            : canModerate(user)
+                ? [{ href: "/admin/review", label: "Review", icon: ShieldCheck }]
+                : []),
+        { href: "/profile", label: "Profile", icon: UserCircle },
+    ];
 
     return (
         <>
-            <aside className="hidden h-screen w-64 shrink-0 border-r border-white/10 bg-black/30 p-3 md:sticky md:top-0 md:block xl:w-72 xl:p-4">
+            <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 border-r border-white/10 bg-[#09090b]/95 p-3 backdrop-blur md:flex md:flex-col xl:w-72 xl:p-4">
                 <Link
                     href="/feed"
-                    className="block rounded-3xl bg-white/[0.04] p-4 xl:p-5"
+                    className="shrink-0 rounded-3xl bg-white/[0.04] p-4 xl:p-5"
                 >
                     <p className="text-[10px] uppercase tracking-[0.28em] text-white/40 xl:text-xs">
                         Ecosystem
@@ -142,15 +164,29 @@ export default function Sidebar() {
                     ) : null}
                 </Link>
 
-                <nav className="mt-5 h-[calc(100vh-8.5rem)] space-y-1 overflow-y-auto pr-1 xl:mt-6 xl:space-y-2">
-                    {navItems.map((item) => (
-                        <NavLink
-                            key={item.href}
-                            item={item}
-                            active={isActivePath(pathname, item.href)}
+                <div className="mt-5 flex min-h-0 flex-1 flex-col">
+                    <nav className="min-h-0 flex-1 space-y-6 overflow-y-auto pr-1 pb-4">
+                        <NavSection
+                            title="Main"
+                            items={primaryNavItems}
+                            pathname={pathname}
                         />
-                    ))}
-                </nav>
+
+                        <NavSection
+                            title="Workspace"
+                            items={workspaceItems}
+                            pathname={pathname}
+                        />
+                    </nav>
+
+                    <div className="shrink-0 border-t border-white/10 pt-4">
+                        <NavSection
+                            title="Account"
+                            items={accountItems}
+                            pathname={pathname}
+                        />
+                    </div>
+                </div>
             </aside>
 
             <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-[#09090b]/95 px-2 py-2 backdrop-blur md:hidden">
