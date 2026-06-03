@@ -128,6 +128,15 @@ export default function AdminContentPage() {
 
     const items = contentQuery.data?.items ?? [];
 
+    const toggleFeatureMutation = useMutation({
+        mutationFn: (contentId: string) => api.toggleFeaturedContent(contentId),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["admin", "content"] });
+            queryClient.invalidateQueries({ queryKey: ["feed", "discover"] });
+            queryClient.invalidateQueries({ queryKey: ["feed"] });
+        },
+    });
+
     return (
         <RoleGuard allowedRoles={["ADMIN", "MODERATOR"]}>
             <div className="space-y-8">
@@ -328,6 +337,22 @@ export default function AdminContentPage() {
                                                 </button>
                                             </div>
                                         ) : null}
+
+                                        <button
+                                            type="button"
+                                            onClick={() => toggleFeatureMutation.mutate(content.id)}
+                                            disabled={toggleFeatureMutation.isPending}
+                                            className={`rounded-2xl px-4 py-2 text-sm font-semibold transition ${content.is_featured
+                                                    ? "border border-amber-300/40 bg-gradient-to-r from-amber-300 to-orange-400 text-black shadow-[0_0_0_1px_rgba(251,191,36,0.35),0_10px_30px_rgba(251,191,36,0.25)]"
+                                                    : "border border-fuchsia-400/30 bg-gradient-to-r from-fuchsia-500/20 to-cyan-500/20 text-white shadow-[0_0_0_1px_rgba(217,70,239,0.18)] hover:from-fuchsia-500/30 hover:to-cyan-500/30 hover:text-white"
+                                                } disabled:opacity-60`}
+                                        >
+                                            {toggleFeatureMutation.isPending
+                                                ? "Updating..."
+                                                : content.is_featured
+                                                    ? "Featured"
+                                                    : "Make featured"}
+                                        </button>
 
                                         {content.content_type === "CHILDREN" ? (
                                             <div className="rounded-2xl border border-white/10 bg-black/20 p-4">

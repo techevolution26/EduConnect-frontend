@@ -1,9 +1,12 @@
 "use client";
 
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { FormEvent, useMemo, useState } from "react";
+import { Save, Sparkles } from "lucide-react";
+import { FormEvent, useMemo, useRef, useState } from "react";
 
 import RoleGuard from "@/components/auth/RoleGuard";
+import EditorToolbar from "@/components/editor/EditorToolbar";
+import MarkdownPreview from "@/components/editor/MarkdownPreview";
 import { api, ApiError } from "@/lib/api";
 import type { ContentType, ContentVisibility } from "@/lib/types";
 
@@ -18,11 +21,7 @@ const contentTypes: ContentType[] = [
     "AUDIO",
 ];
 
-const visibilityOptions: ContentVisibility[] = [
-    "PUBLIC",
-    "PARTNERS_ONLY",
-    "PRIVATE",
-];
+const visibilityOptions: ContentVisibility[] = ["PUBLIC", "PARTNERS_ONLY", "PRIVATE"];
 
 function slugify(value: string) {
     return value
@@ -32,7 +31,26 @@ function slugify(value: string) {
         .replace(/(^-|-$)+/g, "");
 }
 
+function countWords(text: string) {
+    const trimmed = text.trim();
+    if (!trimmed) return 0;
+    return trimmed.split(/\s+/).length;
+}
+
+function countCharacters(text: string) {
+    return text.length;
+}
+
+function estimateReadingMinutes(text: string) {
+    const words = countWords(text);
+    return Math.max(1, Math.round(words / 220));
+}
+
+type PreviewMode = "write" | "split" | "preview";
+
 export default function PublishPage() {
+    const bodyRef = useRef<HTMLTextAreaElement | null>(null);
+
     const [title, setTitle] = useState("");
     const [slugTouched, setSlugTouched] = useState(false);
     const [slug, setSlug] = useState("");
@@ -44,6 +62,7 @@ export default function PublishPage() {
     const [categoryId, setCategoryId] = useState("");
     const [hubId, setHubId] = useState("");
     const [createdContentId, setCreatedContentId] = useState<string | null>(null);
+    const [previewMode, setPreviewMode] = useState<PreviewMode>("split");
 
     const categoriesQuery = useQuery({
         queryKey: ["categories"],
@@ -56,14 +75,9 @@ export default function PublishPage() {
     });
 
     const computedSlug = useMemo(() => slugify(title), [title]);
-
-    function handleTitleChange(value: string) {
-        setTitle(value);
-
-        if (!slugTouched) {
-            setSlug(slugify(value));
-        }
-    }
+    const wordCount = useMemo(() => countWords(body), [body]);
+    const charCount = useMemo(() => countCharacters(body), [body]);
+    const readingMinutes = useMemo(() => estimateReadingMinutes(body), [body]);
 
     const createMutation = useMutation({
         mutationFn: api.createContent,
@@ -75,6 +89,14 @@ export default function PublishPage() {
     const submitMutation = useMutation({
         mutationFn: api.submitContentForReview,
     });
+
+    function handleTitleChange(value: string) {
+        setTitle(value);
+
+        if (!slugTouched) {
+            setSlug(slugify(value));
+        }
+    }
 
     function handleCreate(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
@@ -107,194 +129,365 @@ export default function PublishPage() {
             ? submitMutation.error.detail
             : "Could not submit content.";
 
+    const draftSummary = body.trim() || excerpt.trim() || "Your draft summary will appear here.";
+
     return (
         <RoleGuard allowedRoles={["WRITER", "TEACHER", "ADMIN"]}>
-            <div className="mx-auto max-w-5xl space-y-8">
-                <section className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 shadow-2xl">
-                    <p className="text-xs uppercase tracking-[0.28em] text-white/40">
-                        Publish
-                    </p>
+            <div className="mx-auto min-h-screen max-w-[1600px] px-4 py-5 sm:px-6 lg:px-8">
+                <section className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-gradient-to-br from-slate-950 via-zinc-950 to-black p-6 shadow-[0_24px_80px_rgba(0,0,0,0.42)] sm:p-8">
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(251,191,36,0.10),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(34,197,94,0.08),transparent_28%),radial-gradient(circle_at_center,rgba(14,165,233,0.07),transparent_34%)]" />
 
-                    <h1 className="mt-3 text-3xl font-semibold tracking-tight">
-                        Create content
-                    </h1>
+                    <div className="relative grid gap-6 lg:grid-cols-[1.45fr_0.85fr] lg:items-end">
+                        <div>
+                            <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/20 bg-amber-500/10 px-4 py-2 text-xs font-medium uppercase tracking-[0.22em] text-amber-100">
+                                <Sparkles className="h-3.5 w-3.5" />
+                                Publishing studio
+                            </div>
 
-                    <p className="mt-4 max-w-2xl text-sm leading-6 text-white/60">
-                        Create a draft, then submit it for moderation review.
-                    </p>
+                            <h1 className="mt-4 text-3xl font-semibold tracking-tight text-white sm:text-5xl">
+                                Create with calm, clarity, and purpose.
+                            </h1>
+
+                            <p className="mt-4 max-w-2xl text-sm leading-7 text-white/65 sm:text-base">
+                                Write your draft, shape it with the toolbar, then submit it for
+                                review when ready.
+                            </p>
+
+                            <div className="mt-6 flex flex-wrap gap-3">
+                                <div className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white/75">
+                                    <span className="text-white/45">Reading time</span>{" "}
+                                    <span className="ml-1 font-semibold text-white">{readingMinutes} min</span>
+                                </div>
+
+                                <div className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white/75">
+                                    <span className="text-white/45">Words</span>{" "}
+                                    <span className="ml-1 font-semibold text-white">{wordCount}</span>
+                                </div>
+
+                                <div className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white/75">
+                                    <span className="text-white/45">Characters</span>{" "}
+                                    <span className="ml-1 font-semibold text-white">{charCount}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="rounded-[1.75rem] border border-white/10 bg-black/25 p-5 backdrop-blur">
+                            <div className="flex items-center gap-3">
+                                <Save className="h-5 w-5 text-white/45" />
+                                <h2 className="font-semibold text-white">Writing rhythm</h2>
+                            </div>
+
+                            <div className="mt-4 space-y-3 text-sm text-white/60">
+                                <p>• Keep the title, slug, and excerpt concise</p>
+                                <p>• Use the toolbar to shape the body without leaving the page</p>
+                                <p>• Switch to preview only when checking polish</p>
+                                <p>• Submit after the draft feels structurally complete</p>
+                            </div>
+                        </div>
+                    </div>
                 </section>
 
-                <form
-                    onSubmit={handleCreate}
-                    className="grid gap-5 rounded-[2rem] border border-white/10 bg-white/[0.04] p-6"
-                >
-                    <div>
-                        <label className="text-sm text-white/70">Title</label>
-                        <input
-                            value={title}
-                            onChange={(event) => handleTitleChange(event.target.value)}
-                            className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-white/30"
-                            required
-                        />
+                <form onSubmit={handleCreate} className="mt-6 grid gap-6 xl:grid-cols-[1.35fr_0.65fr]">
+                    <div className="space-y-6">
+                        <div className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.18)] sm:p-6">
+                            <div className="grid gap-5">
+                                <div className="rounded-[1.75rem] border border-white/10 bg-black/20 p-5">
+                                    <label className="text-sm text-white/70">Title</label>
+                                    <input
+                                        value={title}
+                                        onChange={(event) => handleTitleChange(event.target.value)}
+                                        className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/30 focus:border-white/30"
+                                        placeholder="A compelling title"
+                                        required
+                                    />
+                                </div>
+
+                                <div className="rounded-[1.75rem] border border-white/10 bg-black/20 p-5">
+                                    <div className="flex items-center justify-between gap-3">
+                                        <label className="text-sm text-white/70">Slug</label>
+                                        <button
+                                            type="button"
+                                            onClick={() => setSlug(slugify(title))}
+                                            className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/60 hover:bg-white/10 hover:text-white"
+                                        >
+                                            Auto-fill
+                                        </button>
+                                    </div>
+
+                                    <input
+                                        value={slug}
+                                        onChange={(event) => {
+                                            setSlugTouched(true);
+                                            setSlug(slugify(event.target.value));
+                                        }}
+                                        className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/30 focus:border-white/30"
+                                        placeholder="your-clean-url-slug"
+                                        required
+                                    />
+
+                                    <p className="mt-2 text-xs text-white/35">
+                                        Public URL preview:{" "}
+                                        <span className="text-white/55">/read/{slug || computedSlug || "slug"}</span>
+                                    </p>
+                                </div>
+
+                                <div className="rounded-[1.75rem] border border-white/10 bg-black/20 p-5">
+                                    <label className="text-sm text-white/70">Excerpt</label>
+                                    <textarea
+                                        value={excerpt}
+                                        onChange={(event) => setExcerpt(event.target.value)}
+                                        rows={4}
+                                        className="mt-2 w-full resize-none rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm leading-6 text-white outline-none transition placeholder:text-white/30 focus:border-white/30"
+                                        placeholder="A short summary readers can scan quickly."
+                                    />
+
+                                    <p className="mt-2 text-xs text-white/35">
+                                        Keep it crisp. It should help the reader decide whether to open the piece.
+                                    </p>
+                                </div>
+
+                                <div className="rounded-[1.75rem] border border-white/10 bg-black/20 p-5">
+                                    <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                                        <div>
+                                            <label className="text-sm text-white/70">Body</label>
+                                            <p className="mt-1 text-xs text-white/35">
+                                                The editor is given more horizontal space here so the draft feels less
+                                                boxed in.
+                                            </p>
+                                        </div>
+
+                                        <div className="flex flex-wrap gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => setPreviewMode("write")}
+                                                className={`rounded-xl px-3 py-2 text-xs transition ${previewMode === "write"
+                                                    ? "bg-white text-black"
+                                                    : "border border-white/10 bg-white/5 text-white/70"
+                                                    }`}
+                                            >
+                                                Write
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                onClick={() => setPreviewMode("split")}
+                                                className={`rounded-xl px-3 py-2 text-xs transition ${previewMode === "split"
+                                                    ? "bg-white text-black"
+                                                    : "border border-white/10 bg-white/5 text-white/70"
+                                                    }`}
+                                            >
+                                                Split
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                onClick={() => setPreviewMode("preview")}
+                                                className={`rounded-xl px-3 py-2 text-xs transition ${previewMode === "preview"
+                                                    ? "bg-white text-black"
+                                                    : "border border-white/10 bg-white/5 text-white/70"
+                                                    }`}
+                                            >
+                                                Preview
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-4">
+                                        <EditorToolbar textareaRef={bodyRef} value={body} onChange={setBody} />
+                                    </div>
+
+                                    <div
+                                        className={`mt-5 grid gap-5 ${previewMode === "split" ? "xl:grid-cols-[1.15fr_0.85fr]" : ""
+                                            }`}
+                                    >
+                                        {previewMode !== "preview" ? (
+                                            <textarea
+                                                ref={bodyRef}
+                                                value={body}
+                                                onChange={(event) => setBody(event.target.value)}
+                                                rows={22}
+                                                className="min-h-[720px] w-full resize-none rounded-[1.75rem] border border-white/10 bg-[#0d1016] px-5 py-5 text-sm leading-8 text-white outline-none transition placeholder:text-white/20 focus:border-white/30"
+                                                placeholder="Write your piece here..."
+                                                required
+                                            />
+                                        ) : null}
+
+                                        {previewMode !== "write" ? (
+                                            <div className="min-h-[720px] overflow-auto rounded-[1.75rem] border border-white/10 bg-[#0d1016] p-6">
+                                                <MarkdownPreview
+                                                    content={body.trim() || "# Live preview\n\nYour formatted content appears here."}
+                                                />
+                                            </div>
+                                        ) : null}
+                                    </div>
+
+                                    <div className="mt-3 flex flex-wrap gap-2 text-xs text-white/45">
+                                        <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
+                                            {wordCount} words
+                                        </span>
+                                        <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
+                                            {readingMinutes} min read
+                                        </span>
+                                        <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
+                                            {charCount} characters
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    <div>
-                        <label className="text-sm text-white/70">Slug</label>
-                        <input
-                            value={slug}
-                            onChange={(event) => {
-                                setSlugTouched(true);
-                                setSlug(slugify(event.target.value));
-                            }}
-                            className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-white/30"
-                            required
-                        />
-                    </div>
+                    <aside className="space-y-6 lg:sticky lg:top-6 lg:self-start">
+                        <div className="rounded-[2rem] border border-white/10 bg-black/20 p-5">
+                            <h2 className="text-lg font-semibold text-white">Settings</h2>
 
-                    <div>
-                        <label className="text-sm text-white/70">Excerpt</label>
-                        <textarea
-                            value={excerpt}
-                            onChange={(event) => setExcerpt(event.target.value)}
-                            rows={3}
-                            className="mt-2 w-full resize-none rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm leading-6 text-white outline-none focus:border-white/30"
-                        />
-                    </div>
+                            <div className="mt-5 grid gap-4">
+                                <div>
+                                    <label className="text-sm text-white/70">Content type</label>
+                                    <select
+                                        value={contentType}
+                                        onChange={(event) => setContentType(event.target.value as ContentType)}
+                                        className="mt-2 w-full rounded-2xl border border-white/10 bg-[#111113] px-4 py-3 text-sm text-white outline-none transition focus:border-white/30"
+                                    >
+                                        {contentTypes.map((type) => (
+                                            <option key={type} value={type}>
+                                                {type}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
 
-                    <div>
-                        <label className="text-sm text-white/70">Body</label>
-                        <textarea
-                            value={body}
-                            onChange={(event) => setBody(event.target.value)}
-                            rows={12}
-                            className="mt-2 w-full resize-y rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm leading-6 text-white outline-none focus:border-white/30"
-                            required
-                        />
-                    </div>
+                                <div>
+                                    <label className="text-sm text-white/70">Visibility</label>
+                                    <select
+                                        value={visibility}
+                                        onChange={(event) =>
+                                            setVisibility(event.target.value as ContentVisibility)
+                                        }
+                                        className="mt-2 w-full rounded-2xl border border-white/10 bg-[#111113] px-4 py-3 text-sm text-white outline-none transition focus:border-white/30"
+                                    >
+                                        {visibilityOptions.map((option) => (
+                                            <option key={option} value={option}>
+                                                {option}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
 
-                    <div className="grid gap-4 md:grid-cols-2">
-                        <div>
-                            <label className="text-sm text-white/70">Content type</label>
-                            <select
-                                value={contentType}
-                                onChange={(event) =>
-                                    setContentType(event.target.value as ContentType)
-                                }
-                                className="mt-2 w-full rounded-2xl border border-white/10 bg-[#111113] px-4 py-3 text-sm text-white outline-none focus:border-white/30"
-                            >
-                                {contentTypes.map((type) => (
-                                    <option key={type} value={type}>
-                                        {type}
-                                    </option>
-                                ))}
-                            </select>
+                                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+                                    <div>
+                                        <label className="text-sm text-white/70">Category</label>
+                                        <select
+                                            value={categoryId}
+                                            onChange={(event) => setCategoryId(event.target.value)}
+                                            className="mt-2 w-full rounded-2xl border border-white/10 bg-[#111113] px-4 py-3 text-sm text-white outline-none transition focus:border-white/30"
+                                        >
+                                            <option value="">No category</option>
+                                            {categoriesQuery.data?.map((category) => (
+                                                <option key={category.id} value={category.id}>
+                                                    {category.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label className="text-sm text-white/70">Hub</label>
+                                        <select
+                                            value={hubId}
+                                            onChange={(event) => setHubId(event.target.value)}
+                                            className="mt-2 w-full rounded-2xl border border-white/10 bg-[#111113] px-4 py-3 text-sm text-white outline-none transition focus:border-white/30"
+                                        >
+                                            <option value="">No hub</option>
+                                            {hubsQuery.data?.map((hub) => (
+                                                <option key={hub.id} value={hub.id}>
+                                                    {hub.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <label className="flex items-start gap-3 rounded-[1.5rem] border border-white/10 bg-white/[0.04] px-4 py-4 text-sm text-white/75">
+                                    <input
+                                        type="checkbox"
+                                        checked={isPremium}
+                                        onChange={(event) => setIsPremium(event.target.checked)}
+                                        className="mt-1"
+                                    />
+                                    <span>
+                                        <span className="block font-medium text-white">
+                                            Mark as partner-only / premium content
+                                        </span>
+                                        <span className="mt-1 block text-xs leading-5 text-white/40">
+                                            Use this for exclusive or partnership-supported material.
+                                        </span>
+                                    </span>
+                                </label>
+                            </div>
                         </div>
 
-                        <div>
-                            <label className="text-sm text-white/70">Visibility</label>
-                            <select
-                                value={visibility}
-                                onChange={(event) =>
-                                    setVisibility(event.target.value as ContentVisibility)
-                                }
-                                className="mt-2 w-full rounded-2xl border border-white/10 bg-[#111113] px-4 py-3 text-sm text-white outline-none focus:border-white/30"
-                            >
-                                {visibilityOptions.map((option) => (
-                                    <option key={option} value={option}>
-                                        {option}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
+                        <div className="rounded-[2rem] border border-white/10 bg-black/20 p-5">
+                            <h3 className="text-sm font-semibold text-white">Draft snapshot</h3>
 
-                    <div className="grid gap-4 md:grid-cols-2">
-                        <div>
-                            <label className="text-sm text-white/70">Category</label>
-                            <select
-                                value={categoryId}
-                                onChange={(event) => setCategoryId(event.target.value)}
-                                className="mt-2 w-full rounded-2xl border border-white/10 bg-[#111113] px-4 py-3 text-sm text-white outline-none focus:border-white/30"
-                            >
-                                <option value="">No category</option>
-                                {categoriesQuery.data?.map((category) => (
-                                    <option key={category.id} value={category.id}>
-                                        {category.name}
-                                    </option>
-                                ))}
-                            </select>
+                            <div className="mt-4 rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
+                                <p className="text-xs uppercase tracking-[0.2em] text-white/35">
+                                    {contentType} • {visibility}
+                                </p>
+                                <h4 className="mt-3 text-xl font-semibold text-white">
+                                    {title || "Untitled draft"}
+                                </h4>
+                                <p className="mt-3 line-clamp-4 text-sm leading-6 text-white/65">
+                                    {draftSummary}
+                                </p>
+                            </div>
                         </div>
 
-                        <div>
-                            <label className="text-sm text-white/70">Hub</label>
-                            <select
-                                value={hubId}
-                                onChange={(event) => setHubId(event.target.value)}
-                                className="mt-2 w-full rounded-2xl border border-white/10 bg-[#111113] px-4 py-3 text-sm text-white outline-none focus:border-white/30"
-                            >
-                                <option value="">No hub</option>
-                                {hubsQuery.data?.map((hub) => (
-                                    <option key={hub.id} value={hub.id}>
-                                        {hub.name}
-                                    </option>
-                                ))}
-                            </select>
+                        {createMutation.isError ? (
+                            <p className="rounded-2xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
+                                {createError}
+                            </p>
+                        ) : null}
+
+                        {createMutation.isSuccess ? (
+                            <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
+                                Draft created successfully.
+                            </div>
+                        ) : null}
+
+                        {submitMutation.isError ? (
+                            <p className="rounded-2xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
+                                {submitError}
+                            </p>
+                        ) : null}
+
+                        {submitMutation.isSuccess ? (
+                            <p className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
+                                Content submitted for review.
+                            </p>
+                        ) : null}
+
+                        <div className="rounded-[2rem] border border-white/10 bg-black/20 p-5">
+                            <div className="flex flex-col gap-3">
+                                <button
+                                    type="submit"
+                                    disabled={createMutation.isPending}
+                                    className="rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-black transition hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-60"
+                                >
+                                    {createMutation.isPending ? "Creating..." : "Create draft"}
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={handleSubmitForReview}
+                                    disabled={!createdContentId || submitMutation.isPending}
+                                    className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white/80 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+                                >
+                                    {submitMutation.isPending ? "Submitting..." : "Submit for review"}
+                                </button>
+                            </div>
                         </div>
-                    </div>
-
-                    <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/75">
-                        <input
-                            type="checkbox"
-                            checked={isPremium}
-                            onChange={(event) => setIsPremium(event.target.checked)}
-                        />
-                        Mark as partner-only/premium content
-                    </label>
-
-                    {createMutation.isError ? (
-                        <p className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-                            {createError}
-                        </p>
-                    ) : null}
-
-                    {createMutation.isSuccess ? (
-                        <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
-                            Draft created successfully.
-                        </div>
-                    ) : null}
-
-                    <div className="flex flex-wrap gap-3">
-                        <button
-                            type="submit"
-                            disabled={createMutation.isPending}
-                            className="rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-black disabled:opacity-60"
-                        >
-                            {createMutation.isPending ? "Creating..." : "Create draft"}
-                        </button>
-
-                        <button
-                            type="button"
-                            onClick={handleSubmitForReview}
-                            disabled={!createdContentId || submitMutation.isPending}
-                            className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white/80 disabled:cursor-not-allowed disabled:opacity-40"
-                        >
-                            {submitMutation.isPending
-                                ? "Submitting..."
-                                : "Submit for review"}
-                        </button>
-                    </div>
-
-                    {submitMutation.isError ? (
-                        <p className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-                            {submitError}
-                        </p>
-                    ) : null}
-
-                    {submitMutation.isSuccess ? (
-                        <p className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
-                            Content submitted for review.
-                        </p>
-                    ) : null}
+                    </aside>
                 </form>
             </div>
         </RoleGuard>

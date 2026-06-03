@@ -4,6 +4,7 @@ import type {
   AdminUser,
   AdminUserListResponse,
   Category,
+  Comment,
   Content,
   ContentDetail,
   ContentListResponse,
@@ -126,22 +127,18 @@ export const api = {
     skip?: number;
     limit?: number;
     content_type?: string;
-    category_id?: string;
-    hub_id?: string;
   }) {
     const searchParams = new URLSearchParams();
 
     Object.entries(params ?? {}).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
+      if (value !== undefined && value !== null && value !== "") {
         searchParams.set(key, String(value));
       }
     });
 
     const query = searchParams.toString();
 
-    return apiRequest<FeedResponse>(
-      `/feed/discover${query ? `?${query}` : ""}`,
-    );
+    return apiRequest<FeedResponse>(`/feed/discover${query ? `?${query}` : ""}`);
   },
 
   // forYouFeed() {
@@ -667,103 +664,113 @@ export const api = {
   },
 
   createRoleRequest(payload: {
-  requested_role: UserRole;
-  reason: string;
-}) {
-  return apiRequest<RoleUpgradeRequest>("/role-requests", {
-    method: "POST",
-    body: payload,
-    auth: true,
-  });
-},
-
-myRoleRequests() {
-  return apiRequest<RoleUpgradeRequest[]>("/role-requests/me", {
-    auth: true,
-  });
-},
-
-adminRoleRequests(params?: {
-  status_filter?: RoleRequestStatus;
-}) {
-  const searchParams = new URLSearchParams();
-
-  Object.entries(params ?? {}).forEach(([key, value]) => {
-    if (value !== undefined && value !== null) {
-      searchParams.set(key, String(value));
-    }
-  });
-
-  const query = searchParams.toString();
-
-  return apiRequest<RoleUpgradeRequestListResponse>(
-    `/role-requests/admin${query ? `?${query}` : ""}`,
-    {
-      auth: true,
-    },
-  );
-},
-
-approveRoleRequest(requestId: string, adminNote?: string | null) {
-  return apiRequest<RoleUpgradeRequest>(
-    `/role-requests/admin/${requestId}/approve`,
-    {
+    requested_role: UserRole;
+    reason: string;
+  }) {
+    return apiRequest<RoleUpgradeRequest>("/role-requests", {
       method: "POST",
-      body: {
-        admin_note: adminNote ?? null,
-      },
+      body: payload,
       auth: true,
-    },
-  );
-},
+    });
+  },
 
-rejectRoleRequest(requestId: string, adminNote?: string | null) {
-  return apiRequest<RoleUpgradeRequest>(
-    `/role-requests/admin/${requestId}/reject`,
-    {
-      method: "POST",
-      body: {
-        admin_note: adminNote ?? null,
-      },
+  myRoleRequests() {
+    return apiRequest<RoleUpgradeRequest[]>("/role-requests/me", {
       auth: true,
-    },
-  );
-},
+    });
+  },
 
-searchContent(params: {
-  q: string;
-  content_type?: string;
-  category_id?: string;
-  skip?: number;
-  limit?: number;
-}) {
-  const searchParams = new URLSearchParams();
+  adminRoleRequests(params?: {
+    status_filter?: RoleRequestStatus;
+  }) {
+    const searchParams = new URLSearchParams();
 
-  Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined && value !== null && value !== "") {
-      searchParams.set(key, String(value));
+    Object.entries(params ?? {}).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        searchParams.set(key, String(value));
+      }
+    });
+
+    const query = searchParams.toString();
+
+    return apiRequest<RoleUpgradeRequestListResponse>(
+      `/role-requests/admin${query ? `?${query}` : ""}`,
+      {
+        auth: true,
+      },
+    );
+  },
+
+  approveRoleRequest(requestId: string, adminNote?: string | null) {
+    return apiRequest<RoleUpgradeRequest>(
+      `/role-requests/admin/${requestId}/approve`,
+      {
+        method: "POST",
+        body: {
+          admin_note: adminNote ?? null,
+        },
+        auth: true,
+      },
+    );
+  },
+
+  rejectRoleRequest(requestId: string, adminNote?: string | null) {
+    return apiRequest<RoleUpgradeRequest>(
+      `/role-requests/admin/${requestId}/reject`,
+      {
+        method: "POST",
+        body: {
+          admin_note: adminNote ?? null,
+        },
+        auth: true,
+      },
+    );
+  },
+
+  searchContent(params: {
+    q: string;
+    content_type?: string;
+    category_id?: string;
+    skip?: number;
+    limit?: number;
+  }) {
+    const searchParams = new URLSearchParams();
+
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== "") {
+        searchParams.set(key, String(value));
+      }
+    });
+
+    return apiRequest<{
+      query: string;
+      items: Content[];
+      total: number;
+    }>(`/search/content?${searchParams.toString()}`);
+  },
+
+  globalSearch(params: { q: string; limit?: number }) {
+    const searchParams = new URLSearchParams();
+
+    searchParams.set("q", params.q);
+
+    if (params.limit) {
+      searchParams.set("limit", String(params.limit));
     }
-  });
 
-  return apiRequest<{
-    query: string;
-    items: Content[];
-    total: number;
-  }>(`/search/content?${searchParams.toString()}`);
-},
+    return apiRequest<GlobalSearchResponse>(
+      `/search/global?${searchParams.toString()}`,
+    );
+  },
 
-globalSearch(params: { q: string; limit?: number }) {
-  const searchParams = new URLSearchParams();
-
-  searchParams.set("q", params.q);
-
-  if (params.limit) {
-    searchParams.set("limit", String(params.limit));
-  }
-
-  return apiRequest<GlobalSearchResponse>(
-    `/search/global?${searchParams.toString()}`,
-  );
-},
+  toggleFeaturedContent(contentId: string) {
+    return apiRequest<Content>(
+      `/admin/content/${contentId}/feature`,
+      {
+        method: "POST",
+        auth: true,
+      }
+    );
+  },
 
 };

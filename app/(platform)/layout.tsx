@@ -1,4 +1,4 @@
-import AuthGuard from "@/components/auth/AuthGaurd";
+import ConditionalAuthGuard from "@/components/auth/ConditionalAuthGuard";
 import AppShell from "@/components/layout/AppShell";
 
 export default function PlatformLayout({
@@ -7,8 +7,8 @@ export default function PlatformLayout({
   children: React.ReactNode;
 }) {
   return (
-    <AuthGuard>
+    <ConditionalAuthGuard>
       <AppShell>{children}</AppShell>
-    </AuthGuard>
+    </ConditionalAuthGuard>
   );
 }

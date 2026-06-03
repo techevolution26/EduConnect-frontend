@@ -76,6 +76,7 @@ export type Content = {
   visibility: ContentVisibility;
   is_premium: boolean;
   reading_time_minutes: number;
+  is_featured: boolean;
   published_at: string | null;
   created_at: string;
   updated_at: string;

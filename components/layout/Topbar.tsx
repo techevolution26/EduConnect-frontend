@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { getAccessToken } from "@/lib/auth";
 
 import { api } from "@/lib/api";
 import { clearAuthSession } from "@/lib/auth";
@@ -18,9 +19,12 @@ export default function Topbar() {
   const initialQuery = searchParams.get("q") ?? "";
   const [searchValue, setSearchValue] = useState(initialQuery);
 
+  const token = getAccessToken();
+
   const { data: user } = useQuery({
     queryKey: ["auth", "me"],
     queryFn: api.me,
+    enabled: Boolean(token),
     retry: false,
   });
 
@@ -90,30 +94,50 @@ export default function Topbar() {
             <Bell className="h-4 w-4" />
           </Link>
 
-          <Link
-            href="/profile"
-            className="hidden items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-3 py-2 transition hover:bg-white/10 sm:flex"
-          >
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 text-sm font-semibold text-white">
-              {user?.full_name?.charAt(0).toUpperCase() ?? <UserCircle className="h-4 w-4" />}
-            </div>
+          {user ? (
+            <Link
+              href="/profile"
+              className="hidden items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-3 py-2 transition hover:bg-white/10 sm:flex"
+            >
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 text-sm font-semibold text-white">
+                {user.full_name.charAt(0).toUpperCase()}
+              </div>
 
-            <div className="text-right">
-              <p className="max-w-40 truncate text-sm font-medium text-white">
-                {user?.full_name ?? "Loading..."}
-              </p>
-              <p className="text-xs text-white/45">{user?.role ?? "..."}</p>
-            </div>
-          </Link>
+              <div className="text-right">
+                <p className="max-w-40 truncate text-sm font-medium text-white">
+                  {user.full_name}
+                </p>
+                <p className="text-xs text-white/45">{user.role}</p>
+              </div>
+            </Link>
+          ) : (
+            <div className="hidden gap-2 sm:flex">
+              <Link
+                href="/login"
+                className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/75 hover:bg-white/10"
+              >
+                Login
+              </Link>
 
-          <button
-            onClick={logout}
-            className="rounded-2xl border border-white/10 bg-white/5 p-3 text-white/70 transition hover:bg-white/10 hover:text-white"
-            type="button"
-            aria-label="Logout"
-          >
-            <LogOut className="h-4 w-4" />
-          </button>
+              <Link
+                href="/register"
+                className="rounded-2xl bg-white px-4 py-2 text-sm font-semibold text-black"
+              >
+                Join
+              </Link>
+            </div>
+          )}
+
+          {user ? (
+            <button
+              onClick={logout}
+              className="rounded-2xl border border-white/10 bg-white/5 p-3 text-white/70 transition hover:bg-white/10 hover:text-white"
+              type="button"
+              aria-label="Logout"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
+          ) : null}
         </div>
       </div>
 
