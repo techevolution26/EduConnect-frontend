@@ -6,8 +6,8 @@ import Providers from "@/app/providers";
 
 export const metadata: Metadata = {
   title: {
-    default: "Story Learning Ecosystem",
-    template: "%s | Story Learning Ecosystem",
+    default: "EduConnect Ecosystem",
+    template: "%s | EduConnect Ecosystem",
   },
   description:
     "A publishing, education, and community ecosystem for writers, readers, teachers, students, and families.",
