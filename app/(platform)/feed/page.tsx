@@ -215,11 +215,10 @@ export default function FeedPage() {
           <button
             type="button"
             onClick={() => setActiveTab("discover")}
-            className={`rounded-2xl px-4 py-2 text-sm transition ${
-              activeTab === "discover"
-                ? "bg-white text-black"
-                : "border border-white/10 bg-white/5 text-white/70 hover:bg-white/10"
-            }`}
+            className={`rounded-2xl px-4 py-2 text-sm transition ${activeTab === "discover"
+              ? "bg-white text-black"
+              : "border border-white/10 bg-white/5 text-white/70 hover:bg-white/10"
+              }`}
           >
             Discover
           </button>
@@ -227,11 +226,10 @@ export default function FeedPage() {
           <button
             type="button"
             onClick={selectForYou}
-            className={`inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-sm transition ${
-              activeTab === "for-you"
-                ? "bg-white text-black"
-                : "border border-white/10 bg-white/5 text-white/70 hover:bg-white/10"
-            }`}
+            className={`inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-sm transition ${activeTab === "for-you"
+              ? "bg-white text-black"
+              : "border border-white/10 bg-white/5 text-white/70 hover:bg-white/10"
+              }`}
           >
             {!mounted || !isAuthenticated ? (
               <Lock className="h-3.5 w-3.5" />
@@ -247,11 +245,10 @@ export default function FeedPage() {
                 key={filter.label}
                 type="button"
                 onClick={() => setContentType(filter.value)}
-                className={`shrink-0 rounded-2xl px-4 py-2 text-sm transition ${
-                  contentType === filter.value
-                    ? "bg-white text-black"
-                    : "border border-white/10 bg-white/5 text-white/65 hover:bg-white/10 hover:text-white"
-                }`}
+                className={`shrink-0 rounded-2xl px-4 py-2 text-sm transition ${contentType === filter.value
+                  ? "bg-white text-black"
+                  : "border border-white/10 bg-white/5 text-white/65 hover:bg-white/10 hover:text-white"
+                  }`}
               >
                 {filter.label}
               </button>
@@ -333,7 +330,7 @@ export default function FeedPage() {
 
       {currentQuery.isError && activeTab !== "for-you" ? (
         <div className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-          Could not load feed. Confirm the FastAPI backend is running.
+          Something went wrong while loading the feed. Please refresh the page or try again later.
         </div>
       ) : null}
 
@@ -392,9 +389,9 @@ export default function FeedPage() {
       ) : null}
 
       {!currentQuery.isLoading &&
-      !currentQuery.isError &&
-      activeTab === "discover" &&
-      rest.length > 0 ? (
+        !currentQuery.isError &&
+        activeTab === "discover" &&
+        rest.length > 0 ? (
         <section className="space-y-4">
           <div>
             <p className="text-xs uppercase tracking-[0.24em] text-white/40">
@@ -414,11 +411,11 @@ export default function FeedPage() {
       ) : null}
 
       {!currentQuery.isLoading &&
-      !currentQuery.isError &&
-      activeTab === "for-you" &&
-      mounted &&
-      isAuthenticated &&
-      items.length > 0 ? (
+        !currentQuery.isError &&
+        activeTab === "for-you" &&
+        mounted &&
+        isAuthenticated &&
+        items.length > 0 ? (
         <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           {items.map((content) => (
             <ContentCard key={content.id} content={content} />
@@ -427,9 +424,9 @@ export default function FeedPage() {
       ) : null}
 
       {!currentQuery.isLoading &&
-      !currentQuery.isError &&
-      activeTab === "discover" &&
-      items.length === 0 ? (
+        !currentQuery.isError &&
+        activeTab === "discover" &&
+        items.length === 0 ? (
         <EmptyState
           title="No public content yet"
           description="Published content will appear here once approved. Explore hubs, writers, and education sections meanwhile."
@@ -437,11 +434,11 @@ export default function FeedPage() {
       ) : null}
 
       {!currentQuery.isLoading &&
-      !currentQuery.isError &&
-      activeTab === "for-you" &&
-      mounted &&
-      isAuthenticated &&
-      items.length === 0 ? (
+        !currentQuery.isError &&
+        activeTab === "for-you" &&
+        mounted &&
+        isAuthenticated &&
+        items.length === 0 ? (
         <EmptyState
           title="Your personalized feed is empty"
           description="Follow writers or join hubs to personalize this feed."

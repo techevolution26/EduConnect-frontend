@@ -5,11 +5,13 @@ import {
   Gauge,
   Home,
   Library,
+  Menu,
   PenLine,
   Search,
   ShieldCheck,
   UserCircle,
   Users,
+  X,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
@@ -42,25 +44,32 @@ function NavLink({
   item,
   active,
   compact = false,
+  iconOnly = false,
 }: {
   item: NavItem;
   active: boolean;
   compact?: boolean;
+  iconOnly?: boolean;
 }) {
   const Icon = item.icon;
 
-  if (compact) {
+  if (compact || iconOnly) {
     return (
       <Link
         href={item.href}
-        className={`flex min-w-[4.8rem] flex-col items-center justify-center gap-1 rounded-2xl px-3 py-2 text-[11px] transition ${
+        aria-label={item.label}
+        title={item.label}
+        className={[
+          "relative flex h-11 w-11 items-center justify-center rounded-2xl transition",
           active
             ? "bg-white text-black"
-            : "text-white/60 hover:bg-white/10 hover:text-white"
-        }`}
+            : "text-white/60 hover:bg-white/10 hover:text-white",
+        ].join(" ")}
       >
-        <Icon className="h-4 w-4" />
-        <span className="max-w-[4.2rem] truncate">{item.label}</span>
+        <Icon className="h-5 w-5" />
+        {active ? (
+          <span className="absolute -bottom-1 h-1 w-1 rounded-full bg-white/70" />
+        ) : null}
       </Link>
     );
   }
@@ -68,11 +77,10 @@ function NavLink({
   return (
     <Link
       href={item.href}
-      className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-sm transition ${
-        active
-          ? "bg-white text-black"
-          : "text-white/65 hover:bg-white/10 hover:text-white"
-      }`}
+      className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-sm transition ${active
+        ? "bg-white text-black"
+        : "text-white/65 hover:bg-white/10 hover:text-white"
+        }`}
     >
       <Icon className="h-4 w-4 shrink-0" />
       <span className="truncate">{item.label}</span>
@@ -113,6 +121,7 @@ function NavSection({
 export default function Sidebar() {
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
+  const [mobileMoreOpen, setMobileMoreOpen] = useState(false);
 
   useEffect(() => {
     const rafId = requestAnimationFrame(() => setMounted(true));
@@ -128,42 +137,28 @@ export default function Sidebar() {
 
   const workspaceItems: NavItem[] = canShowWorkspace
     ? [
-        ...(canPublish(user)
-          ? [{ href: "/writer/dashboard", label: "Writer Studio", icon: PenLine }]
-          : []),
-        ...(canModerate(user)
-          ? [{ href: "/admin/review", label: "Review Queue", icon: ShieldCheck }]
-          : []),
-        ...(isAdmin(user)
-          ? [{ href: "/admin/dashboard", label: "Admin Dashboard", icon: Gauge }]
-          : []),
-      ]
+      ...(canPublish(user)
+        ? [{ href: "/writer/dashboard", label: "Writer Studio", icon: PenLine }]
+        : []),
+      ...(canModerate(user)
+        ? [{ href: "/admin/review", label: "Review Queue", icon: ShieldCheck }]
+        : []),
+      ...(isAdmin(user)
+        ? [{ href: "/admin/dashboard", label: "Admin Dashboard", icon: Gauge }]
+        : []),
+    ]
     : [];
 
-  const mobileItems: NavItem[] = canShowWorkspace
-    ? [
-        { href: "/feed", label: "Feed", icon: Home },
-        { href: "/library", label: "Library", icon: Bookmark },
-        { href: "/search", label: "Search", icon: Search },
-        ...(canPublish(user)
-          ? [{ href: "/writer/dashboard", label: "Studio", icon: PenLine }]
-          : []),
-        ...(isAdmin(user)
-          ? [{ href: "/admin/dashboard", label: "Admin", icon: Gauge }]
-          : canModerate(user)
-            ? [{ href: "/admin/review", label: "Review", icon: ShieldCheck }]
-            : []),
-        { href: "/profile", label: "Profile", icon: UserCircle },
-      ]
-    : [
-        { href: "/feed", label: "Feed", icon: Home },
-        { href: "/library", label: "Library", icon: Bookmark },
-        { href: "/search", label: "Search", icon: Search },
-        { href: "/profile", label: "Profile", icon: UserCircle },
-      ];
+  const mobilePrimaryItems: NavItem[] = [
+    { href: "/feed", label: "Feed", icon: Home },
+    { href: "/library", label: "Library", icon: Bookmark },
+    { href: "/search", label: "Search", icon: Search },
+    { href: "/profile", label: "Profile", icon: UserCircle },
+  ];
 
   return (
     <>
+      {/* Desktop sidebar */}
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 border-r border-white/10 bg-[#09090b]/95 p-3 backdrop-blur md:flex md:flex-col xl:w-72 xl:p-4">
         <Link
           href="/feed"
@@ -174,7 +169,7 @@ export default function Sidebar() {
           </p>
 
           <h1 className="mt-2 truncate text-lg font-semibold tracking-tight text-white xl:text-xl">
-            Story Learning
+            EduConnect
           </h1>
 
           <p className="mt-2 truncate text-xs text-white/40">
@@ -198,18 +193,133 @@ export default function Sidebar() {
         </div>
       </aside>
 
-      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-[#09090b]/95 px-2 py-2 backdrop-blur md:hidden">
-        <div className="flex gap-2 overflow-x-auto">
-          {mobileItems.map((item) => (
+      {/* Mobile bottom nav */}
+      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-[#09090b]/95 px-3 py-3 backdrop-blur md:hidden">
+        <div className="flex items-center justify-between gap-2">
+          {mobilePrimaryItems.map((item) => (
             <NavLink
               key={item.href}
               item={item}
               active={isActivePath(pathname, item.href)}
               compact
+              iconOnly
             />
           ))}
+
+          {workspaceItems.length > 0 ? (
+            <button
+              type="button"
+              onClick={() => setMobileMoreOpen(true)}
+              className="relative flex h-11 w-11 items-center justify-center rounded-2xl text-white/60 transition hover:bg-white/10 hover:text-white"
+              aria-label="More"
+              aria-expanded={mobileMoreOpen}
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+          ) : null}
         </div>
       </nav>
+
+      {/* Mobile more drawer */}
+      {mobileMoreOpen ? (
+        <>
+          <button
+            type="button"
+            aria-label="Close mobile menu backdrop"
+            onClick={() => setMobileMoreOpen(false)}
+            className="fixed inset-0 z-40 bg-black/45 md:hidden"
+          />
+
+          <div className="fixed inset-x-0 bottom-[76px] z-50 mx-3 overflow-hidden rounded-3xl border border-white/10 bg-[#09090b]/95 shadow-2xl backdrop-blur-xl md:hidden">
+            <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
+              <div>
+                <p className="text-sm font-semibold text-white">More</p>
+                <p className="text-xs text-white/45">Workspace and account</p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setMobileMoreOpen(false)}
+                className="rounded-xl p-2 text-white/60 transition hover:bg-white/10 hover:text-white"
+                aria-label="Close menu"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="max-h-[60vh] overflow-y-auto p-3">
+              {user ? (
+                <>
+                  <div className="mb-3 flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-3">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 text-sm font-semibold text-white">
+                      {user.full_name?.charAt(0)?.toUpperCase() ?? "U"}
+                    </div>
+
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-white">
+                        {user.full_name}
+                      </p>
+                      <p className="text-xs text-white/45">{user.role}</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    {workspaceItems.map((item) => {
+                      const Icon = item.icon;
+                      const active = isActivePath(pathname, item.href);
+
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          onClick={() => setMobileMoreOpen(false)}
+                          className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-sm transition ${active
+                            ? "bg-white text-black"
+                            : "text-white/75 hover:bg-white/10 hover:text-white"
+                            }`}
+                        >
+                          <Icon className="h-4 w-4 shrink-0" />
+                          <span className="truncate">{item.label}</span>
+                        </Link>
+                      );
+                    })}
+
+                    <Link
+                      href="/profile"
+                      onClick={() => setMobileMoreOpen(false)}
+                      className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-sm transition ${isActivePath(pathname, "/profile")
+                        ? "bg-white text-black"
+                        : "text-white/75 hover:bg-white/10 hover:text-white"
+                        }`}
+                    >
+                      <UserCircle className="h-4 w-4 shrink-0" />
+                      <span className="truncate">Profile</span>
+                    </Link>
+                  </div>
+                </>
+              ) : (
+                <div className="space-y-3">
+                  <Link
+                    href="/login"
+                    onClick={() => setMobileMoreOpen(false)}
+                    className="block rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-center text-white transition hover:bg-white/10"
+                  >
+                    Login
+                  </Link>
+
+                  <Link
+                    href="/register"
+                    onClick={() => setMobileMoreOpen(false)}
+                    className="block rounded-2xl bg-white px-4 py-3 text-center font-semibold text-black transition hover:bg-white/90"
+                  >
+                    Create account
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
+        </>
+      ) : null}
     </>
   );
 }

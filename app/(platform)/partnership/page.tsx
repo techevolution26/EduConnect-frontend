@@ -1,10 +1,19 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CheckCircle2, Clock, HeartHandshake, Lock, Sparkles } from "lucide-react";
+import {
+  CheckCircle2,
+  Clock,
+  HeartHandshake,
+  Lock,
+  Sparkles,
+} from "lucide-react";
+import Link from "next/link";
 
 import LoadingState from "@/components/ui/LoadingState";
 import { api, ApiError } from "@/lib/api";
+import { clearAuthSession, getAccessToken } from "@/lib/auth";
 import type { PartnershipPlan } from "@/lib/types";
 
 const planOrder: PartnershipPlan[] = [
@@ -66,6 +75,20 @@ function planButtonLabel(plan: PartnershipPlan) {
 export default function PartnershipPage() {
   const queryClient = useQueryClient();
 
+  const [mounted, setMounted] = useState(false);
+  const [hasSessionToken, setHasSessionToken] = useState(false);
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      setMounted(true);
+      setHasSessionToken(Boolean(getAccessToken()));
+    }, 0);
+
+    return () => window.clearTimeout(timeout);
+  }, []);
+
+  const isAuthenticated = mounted && hasSessionToken;
+
   const plansQuery = useQuery({
     queryKey: ["partnerships", "plans"],
     queryFn: api.partnershipPlans,
@@ -74,7 +97,25 @@ export default function PartnershipPage() {
   const myPartnershipQuery = useQuery({
     queryKey: ["partnerships", "me"],
     queryFn: api.myPartnership,
+    enabled: isAuthenticated,
+    retry: false,
   });
+
+  useEffect(() => {
+    if (!myPartnershipQuery.error) return;
+
+    const timeout = window.setTimeout(() => {
+      if (
+        myPartnershipQuery.error instanceof ApiError &&
+        myPartnershipQuery.error.status === 401
+      ) {
+        clearAuthSession();
+        setHasSessionToken(false);
+      }
+    }, 0);
+
+    return () => window.clearTimeout(timeout);
+  }, [myPartnershipQuery.error]);
 
   const startMutation = useMutation({
     mutationFn: (plan: PartnershipPlan) =>
@@ -102,23 +143,39 @@ export default function PartnershipPage() {
   const hasActivePartnership =
     myPartnershipQuery.data?.has_active_partnership ?? false;
 
-  const errorMessage =
+  const shouldShowPartnershipError =
+    isAuthenticated &&
+    myPartnershipQuery.isError &&
+    !(myPartnershipQuery.error instanceof ApiError &&
+      myPartnershipQuery.error.status === 401);
+
+  const actionError =
     startMutation.error instanceof ApiError
       ? startMutation.error.detail
       : cancelMutation.error instanceof ApiError
         ? cancelMutation.error.detail
         : "Partnership action failed.";
 
+  const heroStatusLabel = hasActivePartnership
+    ? "Active partnership"
+    : isAuthenticated
+      ? "No active partnership"
+      : "Guest access";
+
+  const heroStatusDetail = isAuthenticated
+    ? activePlan ?? "Start a plan to unlock partner-only content."
+    : "Browse plans now, then sign in to activate one.";
+
   return (
-    <div className="space-y-8">
-      <section className="overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 shadow-2xl">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+    <div className="space-y-6 pb-10">
+      <section className="overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.04] p-5 shadow-2xl sm:p-6 lg:p-8">
+        <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
           <div>
             <p className="text-xs uppercase tracking-[0.28em] text-white/40">
               Partnership
             </p>
 
-            <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
+            <h1 className="mt-3 text-3xl font-semibold tracking-tight text-white sm:text-4xl">
               Support stories, education, and community.
             </h1>
 
@@ -127,9 +184,26 @@ export default function PartnershipPage() {
               teachers, students, children’s learning, and African storytelling
               grow in one connected ecosystem.
             </p>
+
+            {!isAuthenticated ? (
+              <div className="mt-5 flex flex-wrap gap-3">
+                <Link
+                  href="/login"
+                  className="rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-black transition hover:bg-white/90"
+                >
+                  Login
+                </Link>
+                <Link
+                  href="/register"
+                  className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/75 transition hover:bg-white/10"
+                >
+                  Create account
+                </Link>
+              </div>
+            ) : null}
           </div>
 
-          <div className="rounded-[2rem] border border-white/10 bg-black/20 p-5 lg:min-w-80">
+          <div className="rounded-[2rem] border border-white/10 bg-black/20 p-5">
             <div className="flex items-center gap-3">
               {hasActivePartnership ? (
                 <CheckCircle2 className="h-5 w-5 text-emerald-300" />
@@ -137,29 +211,24 @@ export default function PartnershipPage() {
                 <Lock className="h-5 w-5 text-white/50" />
               )}
 
-              <div>
-                <p className="text-sm font-semibold">
-                  {hasActivePartnership
-                    ? "Active partnership"
-                    : "No active partnership"}
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-white">
+                  {heroStatusLabel}
                 </p>
-
                 <p className="mt-1 text-xs text-white/45">
-                  {activePlan
-                    ? activePlan
-                    : "Start a plan to unlock partner-only content."}
+                  {heroStatusDetail}
                 </p>
               </div>
             </div>
 
-            {myPartnershipQuery.data?.expires_at ? (
+            {isAuthenticated && myPartnershipQuery.data?.expires_at ? (
               <p className="mt-4 text-xs text-white/45">
                 Expires:{" "}
                 {new Date(myPartnershipQuery.data.expires_at).toLocaleDateString()}
               </p>
             ) : null}
 
-            {hasActivePartnership ? (
+            {isAuthenticated && hasActivePartnership ? (
               <button
                 type="button"
                 onClick={() => cancelMutation.mutate()}
@@ -173,11 +242,11 @@ export default function PartnershipPage() {
         </div>
       </section>
 
-      {plansQuery.isLoading || myPartnershipQuery.isLoading ? (
+      {plansQuery.isLoading || (isAuthenticated && myPartnershipQuery.isLoading) ? (
         <LoadingState label="Loading partnership plans..." />
       ) : null}
 
-      {plansQuery.isError || myPartnershipQuery.isError ? (
+      {shouldShowPartnershipError ? (
         <div className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
           Could not load partnership information.
         </div>
@@ -185,7 +254,7 @@ export default function PartnershipPage() {
 
       {startMutation.isError || cancelMutation.isError ? (
         <div className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-          {errorMessage}
+          {actionError}
         </div>
       ) : null}
 
@@ -196,7 +265,19 @@ export default function PartnershipPage() {
         </div>
       ) : null}
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      {!isAuthenticated ? (
+        <section className="rounded-[2rem] border border-amber-500/30 bg-amber-500/10 p-5">
+          <h2 className="text-lg font-semibold text-amber-100">
+            Guest browsing is enabled
+          </h2>
+          <p className="mt-2 text-sm leading-6 text-amber-100/75">
+            You can explore the plans below. Sign in to activate a plan or manage
+            an existing one.
+          </p>
+        </section>
+      ) : null}
+
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {plans.map((plan) => {
           const isActive = activePlan === plan.plan && hasActivePartnership;
           const isPendingPaid = plan.plan !== "FREE";
@@ -207,12 +288,13 @@ export default function PartnershipPage() {
               className={`rounded-[2rem] border p-5 ${planTone(plan.plan)}`}
             >
               <div className="flex items-start justify-between gap-4">
-                <div>
+                <div className="min-w-0">
                   <p className="text-xs uppercase tracking-[0.2em] text-white/40">
                     {plan.plan}
                   </p>
-
-                  <h2 className="mt-3 text-2xl font-semibold">{plan.label}</h2>
+                  <h2 className="mt-3 text-2xl font-semibold text-white">
+                    {plan.label}
+                  </h2>
                 </div>
 
                 {plan.plan === "ANNUAL_PARTNER" ? (
@@ -250,47 +332,57 @@ export default function PartnershipPage() {
                 </div>
               ) : null}
 
-              <button
-                type="button"
-                onClick={() => startMutation.mutate(plan.plan)}
-                disabled={startMutation.isPending || isActive}
-                className={`mt-6 inline-flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${
-                  isActive
+              {isAuthenticated ? (
+                <button
+                  type="button"
+                  onClick={() => startMutation.mutate(plan.plan)}
+                  disabled={startMutation.isPending || isActive}
+                  className={`mt-6 inline-flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${isActive
                     ? "border border-emerald-400/30 bg-emerald-400/10 text-emerald-100"
                     : "bg-white text-black hover:bg-white/90"
-                }`}
-              >
-                <HeartHandshake className="h-4 w-4" />
-                {isActive ? "Current plan" : planButtonLabel(plan.plan)}
-              </button>
+                    }`}
+                >
+                  <HeartHandshake className="h-4 w-4" />
+                  {isActive ? "Current plan" : planButtonLabel(plan.plan)}
+                </button>
+              ) : (
+                <Link
+                  href="/login"
+                  className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-black transition hover:bg-white/90"
+                >
+                  <HeartHandshake className="h-4 w-4" />
+                  Login to start
+                </Link>
+              )}
             </article>
           );
         })}
       </section>
 
-      <section className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-6">
-        <h2 className="text-2xl font-semibold">How partnership unlocks content</h2>
+      <section className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-5 sm:p-6">
+        <h2 className="text-2xl font-semibold text-white">
+          How partnership unlocks content
+        </h2>
 
         <div className="mt-5 grid gap-4 md:grid-cols-3">
           <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-            <p className="text-sm font-semibold">1. Start partnership</p>
+            <p className="text-sm font-semibold text-white">1. Start partnership</p>
             <p className="mt-2 text-sm leading-6 text-white/55">
               Choose Free, Monthly, Annual, Student, or Teacher partnership.
             </p>
           </div>
 
           <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-            <p className="text-sm font-semibold">2. Unlock access</p>
+            <p className="text-sm font-semibold text-white">2. Unlock access</p>
             <p className="mt-2 text-sm leading-6 text-white/55">
               Active partners can read partner-only content and premium posts.
             </p>
           </div>
 
           <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-            <p className="text-sm font-semibold">3. Support creators</p>
+            <p className="text-sm font-semibold text-white">3. Support creators</p>
             <p className="mt-2 text-sm leading-6 text-white/55">
-              Partnership helps sustain writers, teachers, and community
-              learning spaces.
+              Partnership helps sustain writers, teachers, and community learning spaces.
             </p>
           </div>
         </div>
