@@ -1,26 +1,25 @@
 "use client";
+
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 
 import { api, ApiError } from "@/lib/api";
 import { saveAuthSession } from "@/lib/auth";
+
 export default function LoginForm() {
     const router = useRouter();
+    const queryClient = useQueryClient();
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const queryClient = useQueryClient();
-
 
     const mutation = useMutation({
         mutationFn: api.login,
         onSuccess: (session) => {
             saveAuthSession(session);
-
             queryClient.setQueryData(["auth", "me"], session.user);
             queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
-
             router.push("/feed");
         },
     });
@@ -39,13 +38,12 @@ export default function LoginForm() {
             ? mutation.error.detail
             : "Login failed.";
 
-
     return (
         <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-                <label className="text-sm text-white/70">Email</label>
+                <label className="text-sm text-white/80">Email</label>
                 <input
-                    className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none transition focus:border-white/30"
+                    className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/30 focus:border-white/30 focus:ring-2 focus:ring-white/10"
                     type="email"
                     value={email}
                     onChange={(event) => setEmail(event.target.value)}
@@ -54,9 +52,9 @@ export default function LoginForm() {
             </div>
 
             <div>
-                <label className="text-sm text-white/70">Password</label>
+                <label className="text-sm text-white/80">Password</label>
                 <input
-                    className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none transition focus:border-white/30"
+                    className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/30 focus:border-white/30 focus:ring-2 focus:ring-white/10"
                     type="password"
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}

@@ -5,11 +5,11 @@ import Topbar from "@/components/layout/Topbar";
 
 export default function AppShell({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,#27272a,transparent_30%),#09090b] text-white">
+    <div className="min-h-screen bg-[#09090b] text-white md:pl-64 xl:pl-72">
       <Sidebar />
 
-      <div className="min-h-screen md:pl-64 xl:pl-72">
-        <Suspense>
+      <div className="min-h-screen bg-[#09090b]">
+        <Suspense fallback={null}>
           <Topbar />
         </Suspense>
 

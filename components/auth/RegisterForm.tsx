@@ -42,9 +42,9 @@ export default function RegisterForm() {
     return (
         <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-                <label className="text-sm text-white/70">Full name</label>
+                <label className="text-sm text-white/80">Full name</label>
                 <input
-                    className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none transition focus:border-white/30"
+                    className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/30 focus:border-white/30 focus:ring-2 focus:ring-white/10"
                     value={fullName}
                     onChange={(event) => setFullName(event.target.value)}
                     required
@@ -52,18 +52,18 @@ export default function RegisterForm() {
             </div>
 
             <div>
-                <label className="text-sm text-white/70">Username</label>
+                <label className="text-sm text-white/80">Username</label>
                 <input
-                    className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none transition focus:border-white/30"
+                    className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/30 focus:border-white/30 focus:ring-2 focus:ring-white/10"
                     value={username}
                     onChange={(event) => setUsername(event.target.value)}
                 />
             </div>
 
             <div>
-                <label className="text-sm text-white/70">Email</label>
+                <label className="text-sm text-white/80">Email</label>
                 <input
-                    className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none transition focus:border-white/30"
+                    className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/30 focus:border-white/30 focus:ring-2 focus:ring-white/10"
                     type="email"
                     value={email}
                     onChange={(event) => setEmail(event.target.value)}
@@ -72,9 +72,9 @@ export default function RegisterForm() {
             </div>
 
             <div>
-                <label className="text-sm text-white/70">Password</label>
+                <label className="text-sm text-white/80">Password</label>
                 <input
-                    className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none transition focus:border-white/30"
+                    className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/30 focus:border-white/30 focus:ring-2 focus:ring-white/10"
                     type="password"
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
