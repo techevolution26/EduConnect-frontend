@@ -29,7 +29,9 @@ import type {
   RoleUpgradeRequest,
   RoleUpgradeRequestListResponse,
   GlobalSearchResponse,
+  MessageResponse
 } from "@/lib/types";
+import { request } from "https";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/$/, "") ?? "";
 
@@ -598,6 +600,14 @@ export const api = {
     });
   },
 
+
+  contentEngagement(contentId: string) {
+    return apiRequest<{ liked: boolean; bookmarked: boolean }>(
+      `/content/${contentId}/engagement`,
+      { auth: true },
+    );
+  },
+
   myBookmarks() {
     return apiRequest<Content[]>("/users/me/bookmarks", {
       auth: true,
@@ -760,6 +770,20 @@ export const api = {
   toggleFeaturedContent(contentId: string) {
     return apiRequest<Content>(`/admin/content/${contentId}/feature`, {
       method: "POST",
+      auth: true,
+    });
+  },
+
+  likeComment(commentId: string) {
+    return apiRequest<MessageResponse>(`/comments/${commentId}/like`, {
+      method: "POST",
+      auth: true,
+    });
+  },
+
+  unlikeComment(commentId: string) {
+    return apiRequest<void>(`/comments/${commentId}/like`, {
+      method: "DELETE",
       auth: true,
     });
   },

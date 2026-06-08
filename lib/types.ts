@@ -343,3 +343,7 @@ export type GlobalSearchResponse = {
   education_resources: EducationResource[];
   children_content: ChildrenContent[];
 };
+
+export type MessageResponse = {
+  message: string;
+};
