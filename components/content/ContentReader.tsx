@@ -1,6 +1,50 @@
 import type { ContentDetail } from "@/lib/types";
 import Link from "next/link";
 
+
+function formatRelativeTime(dateInput: string | Date): string {
+    const date = new Date(dateInput);
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+    if (diffInSeconds < 0) return date.toLocaleDateString();
+
+    const mins = Math.floor(diffInSeconds / 60);
+    const hours = Math.floor(mins / 60);
+    const days = Math.floor(hours / 24);
+    const weeks = Math.floor(days / 7);
+
+    // Less than an hour ago
+    if (mins < 60) {
+        return `${mins === 0 ? 1 : mins} ${mins === 1 ? 'min' : 'mins'} ago`;
+    }
+    // Less than a day ago
+    if (hours < 24) {
+        return `${hours} ${hours === 1 ? 'hour' : 'hours'} ago`;
+    }
+    // Less than 3 weeks ago
+    if (days < 21) {
+        return `${days} ${days === 1 ? 'day' : 'days'} ago`;
+    }
+    // Between 3 weeks and 6 weeks ago
+    if (weeks >= 3 && weeks <= 6) {
+        return `${weeks} weeks ago`;
+    }
+
+    // Older than 6 weeks, but still in the current calendar year
+    if (date.getFullYear() === now.getFullYear()) {
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        return `${month}/${year}`;
+    }
+
+    // Different calendar year (e.g., 2027)
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+}
+
 export default function ContentReader({ content }: { content: ContentDetail }) {
     return (
         <article className="mx-auto max-w-3xl">
@@ -27,9 +71,11 @@ export default function ContentReader({ content }: { content: ContentDetail }) {
                     </p>
                 ) : null}
 
-                <div className="mt-6 border-t border-white/10 pt-5 text-sm text-white/50">
-                    By {content.author.full_name}
+                <div className="mt-6 border-t border-white/10 pt-5 text-sm text-white/50 flex justify-between items-center">
+                    <span>By {content.author.full_name}</span>
+                    <span>{formatRelativeTime(content.published_at!)}</span>
                 </div>
+
             </div>
 
             {!content.has_access ? (
