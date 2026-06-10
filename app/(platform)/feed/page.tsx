@@ -66,13 +66,35 @@ function PinnedStat({
 }) {
   return (
     <div className="rounded-[1.75rem] border border-white/10 bg-black/20 p-4">
-      <p className="text-xs uppercase tracking-[0.22em] text-white/35">
-        {label}
-      </p>
+      <p className="text-xs uppercase tracking-[0.22em] text-white/35">{label}</p>
       <p className="mt-2 text-2xl font-semibold text-white">{value}</p>
       <p className="mt-2 text-sm leading-6 text-white/55">{helper}</p>
     </div>
   );
+}
+
+function getCoverImageUrl(item: unknown) {
+  if (!item || typeof item !== "object") return null;
+
+  const value = item as {
+    cover_image_url?: string | null;
+    cover_image?: string | null;
+    cover_image_src?: string | null;
+  };
+
+  return value.cover_image_url ?? value.cover_image ?? value.cover_image_src ?? null;
+}
+
+function getCoverTone(item: unknown) {
+  if (!item || typeof item !== "object") return "#0f1117";
+
+  const value = item as {
+    cover_color?: string | null;
+    accent_color?: string | null;
+    hero_color?: string | null;
+  };
+
+  return value.cover_color ?? value.accent_color ?? value.hero_color ?? "#0f1117";
 }
 
 export default function FeedPage() {
@@ -100,115 +122,204 @@ export default function FeedPage() {
   const forYouQuery = useQuery({
     queryKey: ["feed", "for-you"],
     queryFn: () => api.forYouFeed(),
-    enabled: mounted && activeTab === "for-you" && isAuthenticated,
+    enabled: mounted && isAuthenticated && activeTab === "for-you",
   });
 
   const currentQuery = activeTab === "discover" ? discoverQuery : forYouQuery;
-  const items = currentQuery.data?.items ?? [];
+
+  const discoverItems = discoverQuery.data?.items ?? [];
+  const forYouItems = forYouQuery.data?.items ?? [];
+
+  const currentItems = activeTab === "for-you" ? forYouItems : discoverItems;
 
   const featured = useMemo(() => {
     if (activeTab !== "discover") return null;
-    return items.find((item) => item.is_featured) ?? items[0] ?? null;
-  }, [activeTab, items]);
+    return discoverItems.find((item) => item.is_featured) ?? discoverItems[0] ?? null;
+  }, [activeTab, discoverItems]);
+
+  const authenticatedSpotlight = useMemo(() => {
+    if (!isAuthenticated) return null;
+    if (activeTab === "for-you") {
+      return forYouItems[0] ?? discoverItems[0] ?? null;
+    }
+    return featured ?? discoverItems[0] ?? null;
+  }, [activeTab, discoverItems, featured, forYouItems, isAuthenticated]);
+
+  const authenticatedFallbackList = useMemo(() => {
+    if (!isAuthenticated) return [];
+    const source = activeTab === "for-you" ? forYouItems : discoverItems;
+    return source
+      .filter((item) => item.id !== authenticatedSpotlight?.id)
+      .slice(0, 4);
+  }, [activeTab, authenticatedSpotlight?.id, discoverItems, forYouItems, isAuthenticated]);
 
   const rest = useMemo(() => {
-    if (activeTab !== "discover") return items;
-    return items.filter((item) => item.id !== featured?.id);
-  }, [activeTab, items, featured]);
+    if (activeTab !== "discover" || !featured) return [];
+    return currentItems.filter((item) => item.id !== featured.id);
+  }, [activeTab, currentItems, featured]);
 
   function selectForYou() {
     setActiveTab("for-you");
   }
 
+  const spotlightCoverUrl = getCoverImageUrl(authenticatedSpotlight);
+  const spotlightTone = getCoverTone(authenticatedSpotlight);
+
   return (
     <div className="space-y-8">
-      <section className="relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-gradient-to-br from-slate-950 via-zinc-950 to-black p-6 shadow-[0_24px_80px_rgba(0,0,0,0.42)] sm:p-8 lg:p-10">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(251,191,36,0.12),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(34,197,94,0.10),transparent_28%),radial-gradient(circle_at_center,rgba(14,165,233,0.08),transparent_34%)]" />
+      {!isAuthenticated ? (
+        <section className="relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-gradient-to-br from-slate-950 via-zinc-950 to-black p-6 shadow-[0_24px_80px_rgba(0,0,0,0.42)] sm:p-8 lg:p-10">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(251,191,36,0.12),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(34,197,94,0.10),transparent_28%),radial-gradient(circle_at_center,rgba(14,165,233,0.08),transparent_34%)]" />
 
-        <div className="relative grid gap-8 lg:grid-cols-[1.25fr_0.75fr] lg:items-end">
-          <div>
-            <p className="text-xs uppercase tracking-[0.28em] text-white/40">
-              Reading ecosystem
-            </p>
+          <div className="relative grid gap-8 lg:grid-cols-[1.25fr_0.75fr] lg:items-end">
+            <div>
+              <p className="text-xs uppercase tracking-[0.28em] text-white/40">
+                Reading ecosystem
+              </p>
 
-            <h1 className="mt-3 max-w-4xl text-4xl font-semibold tracking-tight text-white sm:text-5xl lg:text-6xl">
-              Discover stories, lessons, faith, and community voices.
-            </h1>
+              <h1 className="mt-3 max-w-4xl text-4xl font-semibold tracking-tight text-white sm:text-5xl lg:text-6xl">
+                Discover stories, lessons, faith, and community voices.
+              </h1>
 
-            <p className="mt-4 max-w-2xl text-sm leading-7 text-white/65 sm:text-base">
-              A public window into African-centered storytelling, education,
-              children-safe learning, faith content, and creator-led publishing.
-            </p>
+              <p className="mt-4 max-w-2xl text-sm leading-7 text-white/65 sm:text-base">
+                A public window into African-centered storytelling, education,
+                children-safe learning, faith content, and creator-led publishing.
+              </p>
 
-            <div className="mt-6 flex flex-wrap gap-3">
-              {!mounted || !isAuthenticated ? (
-                <>
-                  <Link
-                    href="/register"
-                    className="rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-black transition hover:scale-[1.01] hover:bg-white/90"
-                  >
-                    Join the community
-                  </Link>
-
-                  <Link
-                    href="/login"
-                    className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/75 transition hover:bg-white/10"
-                  >
-                    Login
-                  </Link>
-                </>
-              ) : (
+              <div className="mt-6 flex flex-wrap gap-3">
                 <Link
-                  href="/writer/dashboard"
+                  href="/register"
                   className="rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-black transition hover:scale-[1.01] hover:bg-white/90"
                 >
-                  Go to workspace
+                  Join the community
                 </Link>
-              )}
 
-              <Link
-                href="/search"
-                className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/75 transition hover:bg-white/10"
-              >
-                <Search className="h-4 w-4" />
-                Search ecosystem
-              </Link>
+                <Link
+                  href="/login"
+                  className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/75 transition hover:bg-white/10"
+                >
+                  Login
+                </Link>
+
+                <Link
+                  href="/search"
+                  className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/75 transition hover:bg-white/10"
+                >
+                  <Search className="h-4 w-4" />
+                  Search ecosystem
+                </Link>
+              </div>
+            </div>
+
+            <div className="relative rounded-[2rem] border border-white/10 bg-black/25 p-5 backdrop-blur">
+              <div className="flex items-center gap-3">
+                <Sparkles className="h-5 w-5 text-amber-200/80" />
+                <h2 className="font-semibold text-white">What you can explore</h2>
+              </div>
+
+              <div className="mt-4 grid gap-3 text-sm text-white/60">
+                <p>• Public stories, poems, faith posts, and lessons</p>
+                <p>• Hubs for shared interests and community discovery</p>
+                <p>• Partner-only content previews before joining</p>
+                <p>• Personalized feed after login</p>
+              </div>
+
+              <div className="mt-5 grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
+                <PinnedStat
+                  label="Public"
+                  value="Open"
+                  helper="Discovery feed is public"
+                />
+                <PinnedStat
+                  label="Premium"
+                  value="Partner"
+                  helper="Supports creator earnings"
+                />
+                <PinnedStat
+                  label="Safety"
+                  value="Curated"
+                  helper="Moderated and structured"
+                />
+              </div>
             </div>
           </div>
+        </section>
+      ) : (
+        <section className="space-y-4">
+          <article className="relative overflow-hidden rounded-[2.5rem] border border-white/10 p-6 shadow-[0_24px_80px_rgba(0,0,0,0.42)] sm:p-8 lg:p-10">
+            <div
+              className="absolute inset-0"
+              style={
+                spotlightCoverUrl
+                  ? {
+                    backgroundImage: `linear-gradient(135deg, rgba(2,6,23,0.40), rgba(2,6,23,0.78)), url(${spotlightCoverUrl})`,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                  }
+                  : {
+                    backgroundImage: `linear-gradient(135deg, ${spotlightTone}, #111827 55%, #020617)`,
+                  }
+              }
+            />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(251,191,36,0.14),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(34,197,94,0.10),transparent_28%),radial-gradient(circle_at_center,rgba(14,165,233,0.10),transparent_34%)]" />
 
-          <div className="relative rounded-[2rem] border border-white/10 bg-black/25 p-5 backdrop-blur">
-            <div className="flex items-center gap-3">
-              <Sparkles className="h-5 w-5 text-amber-200/80" />
-              <h2 className="font-semibold text-white">What you can explore</h2>
-            </div>
+            <div className="relative min-h-[36vh] lg:min-h-[48vh] flex flex-col justify-end">
+              <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/20 bg-amber-500/10 px-4 py-2 text-xs font-medium uppercase tracking-[0.22em] text-amber-200 w-fit">
+                <Sparkles className="h-3.5 w-3.5" />
+                {activeTab === "for-you" ? "Your feed" : "Featured content"}
+              </div>
 
-            <div className="mt-4 grid gap-3 text-sm text-white/60">
-              <p>• Public stories, poems, faith posts, and lessons</p>
-              <p>• Hubs for shared interests and community discovery</p>
-              <p>• Partner-only content previews before joining</p>
-              <p>• Personalized feed after login</p>
-            </div>
+              <h1 className="mt-4 max-w-5xl text-3xl font-semibold tracking-tight text-white sm:text-4xl lg:text-6xl">
+                {authenticatedSpotlight
+                  ? authenticatedSpotlight.title
+                  : "Your content feed is ready"}
+              </h1>
 
-            <div className="mt-5 grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
-              <PinnedStat
-                label="Public"
-                value="Open"
-                helper="Discovery feed is public"
-              />
-              <PinnedStat
-                label="Premium"
-                value="Partner"
-                helper="Supports creator earnings"
-              />
-              <PinnedStat
-                label="Safety"
-                value="Curated"
-                helper="Moderated and structured"
-              />
+              <p className="mt-4 max-w-3xl text-sm leading-7 text-white/75 sm:text-base">
+                {authenticatedSpotlight?.excerpt ||
+                  "Fresh content from the ecosystem, shaped around what you follow, read, and join."}
+              </p>
+
+              <div className="mt-6 flex flex-wrap gap-3">
+                {authenticatedSpotlight ? (
+                  <Link
+                    href={`/read/${authenticatedSpotlight.slug}`}
+                    className="rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-black transition hover:scale-[1.01] hover:bg-white/90"
+                  >
+                    Open featured content
+                  </Link>
+                ) : null}
+
+                {activeTab !== "for-you" ? (
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("for-you")}
+                    className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/75 transition hover:bg-white/10"
+                  >
+                    See For you
+                  </button>
+                ) : null}
+
+                <Link
+                  href="/search"
+                  className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/75 transition hover:bg-white/10"
+                >
+                  <Search className="h-4 w-4" />
+                  Search ecosystem
+                </Link>
+              </div>
             </div>
-          </div>
-        </div>
-      </section>
+          </article>
+
+          {/* {authenticatedFallbackList.length > 0 ? (
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              {authenticatedFallbackList.map((content) => (
+                <ContentCard key={content.id} content={content} />
+              ))}
+            </div>
+          ) : null} */}
+        </section>
+      )}
 
       <section className="flex flex-col gap-4 rounded-[2rem] border border-white/10 bg-white/[0.04] p-4 md:flex-row md:items-center md:justify-between">
         <div className="flex flex-wrap gap-2">
@@ -231,9 +342,7 @@ export default function FeedPage() {
               : "border border-white/10 bg-white/5 text-white/70 hover:bg-white/10"
               }`}
           >
-            {!mounted || !isAuthenticated ? (
-              <Lock className="h-3.5 w-3.5" />
-            ) : null}
+            {!mounted || !isAuthenticated ? <Lock className="h-3.5 w-3.5" /> : null}
             For you
           </button>
         </div>
@@ -256,8 +365,6 @@ export default function FeedPage() {
           </div>
         ) : null}
       </section>
-
-      {activeTab === "for-you" && !mounted ? null : null}
 
       {activeTab === "for-you" && mounted && !isAuthenticated ? (
         <section className="rounded-[2rem] border border-amber-500/30 bg-amber-500/10 p-6">
@@ -288,7 +395,7 @@ export default function FeedPage() {
         </section>
       ) : null}
 
-      {activeTab === "discover" ? (
+      {!isAuthenticated ? (
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <QuickLink
             href="/hubs"
@@ -381,9 +488,12 @@ export default function FeedPage() {
           </article>
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
-            {rest.slice(0, 2).map((content) => (
-              <ContentCard key={content.id} content={content} />
-            ))}
+            {currentItems
+              .filter((content) => content.id !== featured.id)
+              .slice(0, 2)
+              .map((content) => (
+                <ContentCard key={content.id} content={content} />
+              ))}
           </div>
         </section>
       ) : null}
@@ -415,9 +525,9 @@ export default function FeedPage() {
         activeTab === "for-you" &&
         mounted &&
         isAuthenticated &&
-        items.length > 0 ? (
+        currentItems.length > 0 ? (
         <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {items.map((content) => (
+          {currentItems.map((content) => (
             <ContentCard key={content.id} content={content} />
           ))}
         </section>
@@ -426,7 +536,7 @@ export default function FeedPage() {
       {!currentQuery.isLoading &&
         !currentQuery.isError &&
         activeTab === "discover" &&
-        items.length === 0 ? (
+        currentItems.length === 0 ? (
         <EmptyState
           title="No public content yet"
           description="Published content will appear here once approved. Explore hubs, writers, and education sections meanwhile."
@@ -438,7 +548,7 @@ export default function FeedPage() {
         activeTab === "for-you" &&
         mounted &&
         isAuthenticated &&
-        items.length === 0 ? (
+        currentItems.length === 0 ? (
         <EmptyState
           title="Your personalized feed is empty"
           description="Follow writers or join hubs to personalize this feed."
