@@ -10,12 +10,25 @@ export type UserRole =
 export type ContentType =
   | "ARTICLE"
   | "STORY"
+  | "FICTION"
   | "POEM"
   | "FAITH"
   | "EDUCATION"
   | "CHILDREN"
   | "NEWS"
-  | "AUDIO";
+  | "AUDIO"
+  | "WRITING_TIPS"
+  | "SELF_IMPROVEMENT"
+  | "RELATIONSHIP"
+  | "MONEY_FINANCE"
+  | "MEDICINE"
+  | "PSYCHOLOGY"
+  | "MENTAL_HEALTH"
+  | "HUMOR"
+  | "WOMEN"
+  | "FITNESS"
+  | "SELF_AWARENESS"
+  | "PARENTING";
 
 export type ContentStatus =
   | "DRAFT"
@@ -89,6 +102,14 @@ export type ContentDetail = Content & {
   requires_partnership: boolean;
   has_access: boolean;
   preview_body: string | null;
+  published_at: string | null;
+  assets?: {
+    id: string;
+    asset_type: "IMAGE" | "FILE";
+    url: string;
+    filename?: string | null;
+    mime_type?: string | null;
+  }[];
 };
 
 export type FeedResponse = {
@@ -346,4 +367,19 @@ export type GlobalSearchResponse = {
 
 export type MessageResponse = {
   message: string;
+};
+
+export type CreateContentPayload = {
+  title: string;
+  slug: string;
+  excerpt?: string;
+  body: string;
+  content_type: string;
+  visibility: string;
+  is_premium: boolean;
+  category_id?: string;
+  hub_id?: string;
+  cover_image_url?: string;
+  images?: File[];
+  files?: File[];
 };

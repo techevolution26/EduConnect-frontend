@@ -1,31 +1,40 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import Link from "next/link";
-import { FormEvent, useMemo, useRef, useState } from "react";
+import { ChevronDown, Save, Sparkles } from "lucide-react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "next/navigation";
+import Link from "next/link";
 
 import RoleGuard from "@/components/auth/RoleGuard";
 import EditorToolbar from "@/components/editor/EditorToolbar";
-import MarkdownPreview from "@/components/editor/MarkdownPreview";
 import LoadingState from "@/components/ui/LoadingState";
 import { api, ApiError } from "@/lib/api";
 import { slugify } from "@/lib/slug";
-import type {
-  ContentStatus,
-  ContentType,
-  ContentVisibility,
-} from "@/lib/types";
+import type { ContentStatus, ContentType, ContentVisibility } from "@/lib/types";
 
 const contentTypes: ContentType[] = [
   "ARTICLE",
   "STORY",
+  "FICTION",
   "POEM",
   "FAITH",
   "EDUCATION",
   "CHILDREN",
   "NEWS",
   "AUDIO",
+  "WRITING_TIPS",
+  "SELF_IMPROVEMENT",
+  "RELATIONSHIP",
+  "MONEY_FINANCE",
+  "MEDICINE",
+  "PSYCHOLOGY",
+  "MENTAL_HEALTH",
+  "HUMOR",
+  "WOMEN",
+  "FITNESS",
+  "SELF_AWARENESS",
+  "PARENTING",
 ];
 
 const visibilityOptions: ContentVisibility[] = [
@@ -60,7 +69,7 @@ type ContentDraft = {
   slug: string;
   excerpt: string | null;
   body: string;
-  content_type: ContentType;
+  content_type: string;
   visibility: ContentVisibility;
   is_premium: boolean;
   category_id: string | null;
@@ -88,21 +97,71 @@ function WriterContentEditor({
   moderationNote,
 }: Props) {
   const queryClient = useQueryClient();
+
+  const titlePanelRef = useRef<HTMLDivElement | null>(null);
+  const settingsPanelRef = useRef<HTMLDivElement | null>(null);
+  const attachmentsPanelRef = useRef<HTMLDivElement | null>(null);
   const bodyRef = useRef<HTMLTextAreaElement | null>(null);
 
+  const [titleOpen, setTitleOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [attachmentsOpen, setAttachmentsOpen] = useState(false);
+
   const [title, setTitle] = useState(content.title ?? "");
+  const [slugTouched, setSlugTouched] = useState(false);
   const [slug, setSlug] = useState(content.slug ?? "");
   const [excerpt, setExcerpt] = useState(content.excerpt ?? "");
   const [body, setBody] = useState(content.body ?? "");
-  const [contentType, setContentType] = useState<ContentType>(content.content_type);
-  const [visibility, setVisibility] = useState<ContentVisibility>(content.visibility);
+  const [contentType, setContentType] = useState<ContentType>(
+    content.content_type as ContentType,
+  );
+  const [visibility, setVisibility] = useState(content.visibility);
   const [isPremium, setIsPremium] = useState(content.is_premium);
   const [categoryId, setCategoryId] = useState(content.category_id ?? "");
   const [hubId, setHubId] = useState(content.hub_id ?? "");
-  const [previewMode, setPreviewMode] = useState<"write" | "split" | "preview">("split");
+  const [images, setImages] = useState<File[]>([]);
+  const [files, setFiles] = useState<File[]>([]);
 
   const editable = canEdit(content.status);
   const submittable = canSubmit(content.status);
+
+  useEffect(() => {
+    function handleOutsideClick(event: MouseEvent | TouchEvent) {
+      const target = event.target as Node;
+
+      if (
+        titleOpen &&
+        titlePanelRef.current &&
+        !titlePanelRef.current.contains(target)
+      ) {
+        setTitleOpen(false);
+      }
+
+      if (
+        attachmentsOpen &&
+        attachmentsPanelRef.current &&
+        !attachmentsPanelRef.current.contains(target)
+      ) {
+        setAttachmentsOpen(false);
+      }
+
+      if (
+        settingsOpen &&
+        settingsPanelRef.current &&
+        !settingsPanelRef.current.contains(target)
+      ) {
+        setSettingsOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleOutsideClick);
+    document.addEventListener("touchstart", handleOutsideClick);
+
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+      document.removeEventListener("touchstart", handleOutsideClick);
+    };
+  }, [titleOpen, attachmentsOpen, settingsOpen]);
 
   const updateMutation = useMutation({
     mutationFn: () =>
@@ -124,6 +183,18 @@ function WriterContentEditor({
     },
   });
 
+  const uploadAssetsMutation = useMutation({
+    mutationFn: ({
+      contentId,
+      images,
+      files,
+    }: {
+      contentId: string;
+      images: File[];
+      files: File[];
+    }) => api.uploadContentAssets(contentId, { images, files }),
+  });
+
   const submitMutation = useMutation({
     mutationFn: () => api.submitContentForReview(contentId),
     onSuccess: () => {
@@ -136,79 +207,48 @@ function WriterContentEditor({
   const actionError =
     updateMutation.error instanceof ApiError
       ? updateMutation.error.detail
-      : submitMutation.error instanceof ApiError
-        ? submitMutation.error.detail
-        : "Action failed.";
+      : uploadAssetsMutation.error instanceof ApiError
+        ? uploadAssetsMutation.error.detail
+        : submitMutation.error instanceof ApiError
+          ? submitMutation.error.detail
+          : "Action failed.";
 
   function handleTitleChange(value: string) {
     setTitle(value);
 
-    if (!slug) {
+    if (!slugTouched) {
       setSlug(slugify(value));
     }
   }
 
-  function updateBody(nextValue: string, cursor?: number) {
-    setBody(nextValue);
-
-    if (typeof cursor !== "number") return;
-
-    requestAnimationFrame(() => {
-      const textarea = bodyRef.current;
-      if (!textarea) return;
-
-      textarea.focus();
-      textarea.setSelectionRange(cursor, cursor);
-    });
-  }
-
-  function insertAtCursor(prefix: string, suffix = "") {
-    const textarea = bodyRef.current;
-
-    if (!textarea) {
-      setBody((current) => `${current}${prefix}${suffix}`);
-      return;
-    }
-
-    const start = textarea.selectionStart ?? body.length;
-    const end = textarea.selectionEnd ?? body.length;
-    const selected = body.slice(start, end);
-
-    const nextValue =
-      body.slice(0, start) + prefix + selected + suffix + body.slice(end);
-
-    const cursor = start + prefix.length + selected.length + suffix.length;
-    updateBody(nextValue, cursor);
-  }
-
-  function insertLine(prefix: string) {
-    const textarea = bodyRef.current;
-
-    if (!textarea) {
-      setBody((current) => `${current}\n${prefix}`);
-      return;
-    }
-
-    const start = textarea.selectionStart ?? body.length;
-    const nextValue = body.slice(0, start) + prefix + body.slice(start);
-    const cursor = start + prefix.length;
-
-    updateBody(nextValue, cursor);
-  }
-
-  const livePreview =
-    body.trim() || excerpt.trim() || "Your draft preview will appear here.";
-
-  function handleSave(event: FormEvent<HTMLFormElement>) {
+  async function handleSave(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!editable) return;
 
-    updateMutation.mutate();
+    await updateMutation.mutateAsync();
+
+    if (images.length > 0 || files.length > 0) {
+      await uploadAssetsMutation.mutateAsync({
+        contentId,
+        images,
+        files,
+      });
+      setImages([]);
+      setFiles([]);
+    }
   }
 
+  const submitLabel = submitMutation.isSuccess
+    ? "Submitted for review"
+    : submitMutation.isPending
+      ? "Submitting..."
+      : content.status === "REJECTED"
+        ? "Resubmit for review"
+        : "Submit for review";
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 overflow-x-hidden">
       {content.status === "REJECTED" ? (
         <section className="rounded-2xl border border-red-500/30 bg-red-500/10 p-5 text-red-100">
           <h2 className="text-lg font-semibold">Revision required</h2>
@@ -230,7 +270,9 @@ function WriterContentEditor({
               Writer Studio
             </p>
 
-            <h1 className="mt-3 text-3xl font-semibold tracking-tight">Manage content</h1>
+            <h1 className="mt-3 text-3xl font-semibold tracking-tight">
+              Manage content
+            </h1>
 
             <p className="mt-4 max-w-2xl text-sm leading-6 text-white/60">
               Edit drafts or rejected content, then submit it for review.
@@ -284,11 +326,7 @@ function WriterContentEditor({
               disabled={submitMutation.isPending}
               className="rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-black disabled:opacity-60"
             >
-              {submitMutation.isPending
-                ? "Submitting..."
-                : content.status === "REJECTED"
-                  ? "Resubmit for review"
-                  : "Submit for review"}
+              {submitLabel}
             </button>
           ) : null}
         </div>
@@ -301,7 +339,7 @@ function WriterContentEditor({
         </div>
       ) : null}
 
-      {updateMutation.isError || submitMutation.isError ? (
+      {updateMutation.isError || uploadAssetsMutation.isError || submitMutation.isError ? (
         <div className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
           {actionError}
         </div>
@@ -321,236 +359,349 @@ function WriterContentEditor({
 
       <form
         onSubmit={handleSave}
-        className="grid gap-6 rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 lg:grid-cols-[1.05fr_0.95fr]"
+        className="grid gap-6 rounded-[2rem] border border-white/10 bg-white/[0.04] p-5 2xl:grid-cols-[minmax(0,1fr)_minmax(280px,360px)]"
       >
-        <div className="space-y-5">
+        <div className="min-w-0 space-y-5">
           <div className="rounded-[2rem] border border-white/10 bg-black/20 p-5">
-            <label className="text-sm text-white/70">Title</label>
-            <input
-              value={title}
-              onChange={(event) => handleTitleChange(event.target.value)}
-              disabled={!editable}
-              className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none disabled:opacity-60"
-              required
-            />
-          </div>
-
-          <div className="rounded-[2rem] border border-white/10 bg-black/20 p-5">
-            <div className="flex items-center justify-between gap-3">
-              <label className="text-sm text-white/70">Slug</label>
+            <div
+              ref={titlePanelRef}
+              className="rounded-[1.5rem] border border-white/10 bg-white/[0.03] p-4"
+            >
               <button
                 type="button"
-                onClick={() => setSlug(slugify(title))}
-                disabled={!editable}
-                className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/60 hover:bg-white/10 hover:text-white disabled:opacity-60"
+                onClick={() => {
+                  setTitleOpen((current) => !current);
+                  setSettingsOpen(false);
+                }}
+                className="flex w-full items-center justify-between gap-3 text-left"
               >
-                Auto-fill
+                <span className="text-sm font-semibold text-white">Title, slug & excerpt</span>
+                <ChevronDown
+                  className={`h-4 w-4 text-white/45 transition ${titleOpen ? "rotate-180" : ""
+                    }`}
+                />
               </button>
+
+              {titleOpen ? (
+                <div className="mt-4 grid gap-5">
+                  <div className="rounded-[1.5rem] border border-white/10 bg-black/20 p-4">
+                    <label className="text-sm text-white/70">Title</label>
+                    <input
+                      value={title}
+                      onChange={(event) => handleTitleChange(event.target.value)}
+                      disabled={!editable}
+                      className="mt-2 w-full min-w-0 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none disabled:opacity-60"
+                      required
+                    />
+                  </div>
+
+                  <div className="rounded-[1.5rem] border border-white/10 bg-black/20 p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <label className="text-sm text-white/70">Slug</label>
+                      <button
+                        type="button"
+                        onClick={() => setSlug(slugify(title))}
+                        disabled={!editable}
+                        className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/60 hover:bg-white/10 hover:text-white disabled:opacity-60"
+                      >
+                        Auto-fill
+                      </button>
+                    </div>
+
+                    <input
+                      value={slug}
+                      onChange={(event) => {
+                        setSlugTouched(true);
+                        setSlug(slugify(event.target.value));
+                      }}
+                      disabled={!editable}
+                      className="mt-2 w-full min-w-0 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none disabled:opacity-60"
+                      required
+                    />
+                  </div>
+
+                  <div className="rounded-[1.5rem] border border-white/10 bg-black/20 p-4">
+                    <label className="text-sm text-white/70">Excerpt</label>
+                    <textarea
+                      value={excerpt}
+                      onChange={(event) => setExcerpt(event.target.value)}
+                      disabled={!editable}
+                      rows={3}
+                      className="mt-2 w-full min-w-0 resize-none rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm leading-6 text-white outline-none disabled:opacity-60"
+                    />
+                  </div>
+                </div>
+              ) : null}
             </div>
 
-            <input
-              value={slug}
-              onChange={(event) => setSlug(slugify(event.target.value))}
-              disabled={!editable}
-              className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none disabled:opacity-60"
-              required
-            />
-          </div>
-
-          <div className="rounded-[2rem] border border-white/10 bg-black/20 p-5">
-            <label className="text-sm text-white/70">Excerpt</label>
-            <textarea
-              value={excerpt}
-              onChange={(event) => setExcerpt(event.target.value)}
-              disabled={!editable}
-              rows={3}
-              className="mt-2 w-full resize-none rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm leading-6 text-white outline-none disabled:opacity-60"
-            />
-          </div>
-
-          <div className="rounded-[2rem] border border-white/10 bg-black/20 p-5">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-              <div>
+            <div className="mt-5 rounded-[1.5rem] border border-white/10 bg-black/20 p-4 sm:p-5">
+              <div className="min-w-0">
                 <label className="text-sm text-white/70">Body</label>
                 <p className="mt-1 text-xs text-white/35">
-                  Use the toolbar to shape the draft and keep the writing flow simple.
+                  The editor stays open and full-width on mobile and laptops.
                 </p>
               </div>
 
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={() => setPreviewMode("write")}
-                  className={`rounded-xl px-3 py-2 text-xs transition ${
-                    previewMode === "write"
-                      ? "bg-white text-black"
-                      : "border border-white/10 bg-white/5 text-white/70"
-                  }`}
-                >
-                  Write
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setPreviewMode("split")}
-                  className={`rounded-xl px-3 py-2 text-xs transition ${
-                    previewMode === "split"
-                      ? "bg-white text-black"
-                      : "border border-white/10 bg-white/5 text-white/70"
-                  }`}
-                >
-                  Split
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setPreviewMode("preview")}
-                  className={`rounded-xl px-3 py-2 text-xs transition ${
-                    previewMode === "preview"
-                      ? "bg-white text-black"
-                      : "border border-white/10 bg-white/5 text-white/70"
-                  }`}
-                >
-                  Preview
-                </button>
+              <div className="mt-4 w-full max-w-full overflow-x-auto pb-1">
+                <div className="min-w-max">
+                  <EditorToolbar textareaRef={bodyRef} value={body} onChange={setBody} />
+                </div>
               </div>
-            </div>
 
-            <div className="mt-4">
-              <EditorToolbar
-                textareaRef={bodyRef}
+              <div
+                ref={attachmentsPanelRef}
+                className="mt-4 rounded-[1.5rem] border border-white/10 bg-black/20 p-4"
+              >
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAttachmentsOpen((current) => !current);
+                    setTitleOpen(false);
+                    setSettingsOpen(false);
+                  }}
+                  className="flex w-full items-center justify-between gap-3 text-left"
+                >
+                  <p className="text-sm font-semibold text-white">File selector</p>
+                  <ChevronDown
+                    className={`h-4 w-4 text-white/45 transition ${attachmentsOpen ? "rotate-180" : ""
+                      }`}
+                  />
+                </button>
+
+                {attachmentsOpen ? (
+                  <div className="mt-4 grid gap-4 rounded-[1.5rem] border border-white/10 bg-white/[0.03] p-4 sm:grid-cols-2">
+                    <label className="block">
+                      <span className="text-sm text-white/70">Add images</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={(event) =>
+                          setImages(Array.from(event.target.files ?? []))
+                        }
+                        className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-3 py-3 text-sm text-white file:mr-4 file:rounded-xl file:border-0 file:bg-white file:px-3 file:py-2 file:text-sm file:font-semibold file:text-black"
+                      />
+                      <p className="mt-2 text-xs text-white/35">
+                        Images can be attached for readers to see in the content.
+                      </p>
+                    </label>
+
+                    <label className="block">
+                      <span className="text-sm text-white/70">Add files</span>
+                      <input
+                        type="file"
+                        multiple
+                        onChange={(event) =>
+                          setFiles(Array.from(event.target.files ?? []))
+                        }
+                        className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-3 py-3 text-sm text-white file:mr-4 file:rounded-xl file:border-0 file:bg-white file:px-3 file:py-2 file:text-sm file:font-semibold file:text-black"
+                      />
+                      <p className="mt-2 text-xs text-white/35">
+                        Files can be attached for reader download or reference.
+                      </p>
+                    </label>
+
+                    {images.length > 0 || files.length > 0 ? (
+                      <div className="sm:col-span-2">
+                        <p className="text-sm font-semibold text-white">Attachments</p>
+
+                        {images.length > 0 ? (
+                          <div className="mt-3">
+                            <p className="text-xs uppercase tracking-[0.18em] text-white/35">
+                              Images
+                            </p>
+                            <ul className="mt-2 space-y-2 text-sm text-white/70">
+                              {images.map((file) => (
+                                <li
+                                  key={`${file.name}-${file.size}-${file.lastModified}`}
+                                  className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2"
+                                >
+                                  {file.name}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        ) : null}
+
+                        {files.length > 0 ? (
+                          <div className="mt-4">
+                            <p className="text-xs uppercase tracking-[0.18em] text-white/35">
+                              Files
+                            </p>
+                            <ul className="mt-2 space-y-2 text-sm text-white/70">
+                              {files.map((file) => (
+                                <li
+                                  key={`${file.name}-${file.size}-${file.lastModified}`}
+                                  className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2"
+                                >
+                                  {file.name}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        ) : null}
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>
+
+              <textarea
+                ref={bodyRef}
                 value={body}
-                onChange={setBody}
+                onChange={(event) => setBody(event.target.value)}
                 disabled={!editable}
+                rows={20}
+                className="mt-5 min-h-[55vh] w-full max-w-full min-w-0 resize-y rounded-[1.75rem] border border-white/10 bg-[#0d1016] px-5 py-5 text-sm leading-8 text-white outline-none transition placeholder:text-white/20 focus:border-white/30 disabled:opacity-60 sm:min-h-[65vh] md:min-h-[72vh]"
+                placeholder="Write your piece here..."
               />
             </div>
 
-            <div
-              className={`mt-5 grid gap-5 ${
-                previewMode === "split" ? "lg:grid-cols-2" : ""
-              }`}
-            >
-              {previewMode !== "preview" ? (
-                <textarea
-                  ref={bodyRef}
-                  value={body}
-                  onChange={(event) => setBody(event.target.value)}
-                  disabled={!editable}
-                  rows={20}
-                  className="min-h-[700px] w-full resize-none rounded-[1.75rem] border border-white/10 bg-[#0d1016] px-5 py-5 text-sm leading-8 text-white outline-none transition placeholder:text-white/20 focus:border-white/30 disabled:opacity-60"
-                  placeholder="Write your piece here..."
-                />
-              ) : null}
-
-              {previewMode !== "write" ? (
-                <div className="min-h-[700px] overflow-auto rounded-[1.75rem] border border-white/10 bg-[#0d1016] p-6">
-                  <MarkdownPreview
-                    content={
-                      body.trim() ||
-                      "# Live preview\n\nYour formatted content appears here."
-                    }
-                  />
-                </div>
-              ) : null}
+            <div className="flex flex-wrap gap-2 text-xs text-white/45">
+              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
+                {body.trim().split(/\s+/).filter(Boolean).length} words
+              </span>
+              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
+                {Math.max(
+                  1,
+                  Math.round(body.trim().split(/\s+/).filter(Boolean).length / 220),
+                )}{" "}
+                min read
+              </span>
+              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
+                {body.length} characters
+              </span>
             </div>
           </div>
         </div>
 
-        <div className="space-y-5">
-          <div className="rounded-[2rem] border border-white/10 bg-black/20 p-5">
-            <h2 className="text-lg font-semibold text-white">Settings</h2>
+        <aside className="min-w-0 space-y-5 2xl:sticky 2xl:top-6 2xl:self-start">
+          <div
+            ref={settingsPanelRef}
+            className="rounded-[2rem] border border-white/10 bg-black/20 p-5"
+          >
+            <button
+              type="button"
+              onClick={() => {
+                setSettingsOpen((current) => !current);
+                setTitleOpen(false);
+                setAttachmentsOpen(false);
+              }}
+              className="flex w-full items-center justify-between gap-3 text-left"
+            >
+              <h2 className="text-lg font-semibold text-white">Settings</h2>
+              <ChevronDown
+                className={`h-4 w-4 text-white/45 transition ${settingsOpen ? "rotate-180" : ""
+                  }`}
+              />
+            </button>
 
-            <div className="mt-5 grid gap-4">
-              <div>
-                <label className="text-sm text-white/70">Content type</label>
-                <select
-                  value={contentType}
-                  onChange={(event) =>
-                    setContentType(event.target.value as ContentType)
-                  }
-                  disabled={!editable}
-                  className="mt-2 w-full rounded-2xl border border-white/10 bg-[#111113] px-4 py-3 text-sm text-white outline-none disabled:opacity-60"
-                >
-                  {contentTypes.map((type) => (
-                    <option className="bg-[#111113] text-white" key={type} value={type}>
-                      {type}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="text-sm text-white/70">Visibility</label>
-                <select
-                  value={visibility}
-                  onChange={(event) =>
-                    setVisibility(event.target.value as ContentVisibility)
-                  }
-                  disabled={!editable}
-                  className="mt-2 w-full rounded-2xl border border-white/10 bg-[#111113] px-4 py-3 text-sm text-white outline-none disabled:opacity-60"
-                >
-                  {visibilityOptions.map((option) => (
-                    <option className="bg-[#111113] text-white" key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <label className="text-sm text-white/70">Category</label>
+            {settingsOpen ? (
+              <div className="mt-5 grid gap-4">
+                <div className="min-w-0">
+                  <label className="text-sm text-white/70">Content type</label>
                   <select
-                    value={categoryId}
-                    onChange={(event) => setCategoryId(event.target.value)}
+                    value={contentType}
+                    onChange={(event) =>
+                      setContentType(event.target.value as ContentType)
+                    }
                     disabled={!editable}
-                    className="mt-2 w-full rounded-2xl border border-white/10 bg-[#111113] px-4 py-3 text-sm text-white outline-none disabled:opacity-60"
+                    className="mt-2 w-full min-w-0 rounded-2xl border border-white/10 bg-[#111113] px-4 py-3 text-sm text-white outline-none disabled:opacity-60"
                   >
-                    <option className="bg-[#111113] text-white" value="">
-                      No category
-                    </option>
-                    {categories.map((category) => (
-                      <option className="bg-[#111113] text-white" key={category.id} value={category.id}>
-                        {category.name}
+                    {contentTypes.map((type) => (
+                      <option className="bg-[#111113] text-white" key={type} value={type}>
+                        {type}
                       </option>
                     ))}
                   </select>
                 </div>
 
-                <div>
-                  <label className="text-sm text-white/70">Hub</label>
+                <div className="min-w-0">
+                  <label className="text-sm text-white/70">Visibility</label>
                   <select
-                    value={hubId}
-                    onChange={(event) => setHubId(event.target.value)}
+                    value={visibility}
+                    onChange={(event) =>
+                      setVisibility(event.target.value as ContentVisibility)
+                    }
                     disabled={!editable}
-                    className="mt-2 w-full rounded-2xl border border-white/10 bg-[#111113] px-4 py-3 text-sm text-white outline-none disabled:opacity-60"
+                    className="mt-2 w-full min-w-0 rounded-2xl border border-white/10 bg-[#111113] px-4 py-3 text-sm text-white outline-none disabled:opacity-60"
                   >
-                    <option className="bg-[#111113] text-white" value="">
-                      No hub
-                    </option>
-                    {hubs.map((hub) => (
-                      <option className="bg-[#111113] text-white" key={hub.id} value={hub.id}>
-                        {hub.name}
+                    {visibilityOptions.map((option) => (
+                      <option className="bg-[#111113] text-white" key={option} value={option}>
+                        {option}
                       </option>
                     ))}
                   </select>
                 </div>
-              </div>
 
-              <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/75">
-                <input
-                  type="checkbox"
-                  checked={isPremium}
-                  disabled={!editable}
-                  onChange={(event) => setIsPremium(event.target.checked)}
-                />
-                Mark as partner-only/premium content
-              </label>
-            </div>
+                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
+                  <div className="min-w-0">
+                    <label className="text-sm text-white/70">Category</label>
+                    <select
+                      value={categoryId}
+                      onChange={(event) => setCategoryId(event.target.value)}
+                      disabled={!editable}
+                      className="mt-2 w-full min-w-0 rounded-2xl border border-white/10 bg-[#111113] px-4 py-3 text-sm text-white outline-none disabled:opacity-60"
+                    >
+                      <option className="bg-[#111113] text-white" value="">
+                        No category
+                      </option>
+                      {categories.map((category) => (
+                        <option
+                          className="bg-[#111113] text-white"
+                          key={category.id}
+                          value={category.id}
+                        >
+                          {category.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="min-w-0">
+                    <label className="text-sm text-white/70">Hub</label>
+                    <select
+                      value={hubId}
+                      onChange={(event) => setHubId(event.target.value)}
+                      disabled={!editable}
+                      className="mt-2 w-full min-w-0 rounded-2xl border border-white/10 bg-[#111113] px-4 py-3 text-sm text-white outline-none disabled:opacity-60"
+                    >
+                      <option className="bg-[#111113] text-white" value="">
+                        No hub
+                      </option>
+                      {hubs.map((hub) => (
+                        <option className="bg-[#111113] text-white" key={hub.id} value={hub.id}>
+                          {hub.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <label className="flex min-w-0 items-start gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/75">
+                  <input
+                    type="checkbox"
+                    checked={isPremium}
+                    disabled={!editable}
+                    onChange={(event) => setIsPremium(event.target.checked)}
+                    className="mt-1 shrink-0"
+                  />
+                  <span className="min-w-0">
+                    <span className="block font-medium text-white">
+                      Mark as partner-only / premium content
+                    </span>
+                    <span className="mt-1 block break-words text-xs leading-5 text-white/40">
+                      Use this for exclusive or partnership-supported material.
+                    </span>
+                  </span>
+                </label>
+              </div>
+            ) : null}
           </div>
 
           <div className="rounded-[2rem] border border-white/10 bg-black/20 p-5">
-            <h3 className="text-sm font-semibold text-white">Live preview</h3>
+            <h3 className="text-sm font-semibold text-white">Writing snapshot</h3>
+
             <div className="mt-4 rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
               <p className="text-xs uppercase tracking-[0.2em] text-white/35">
                 {contentType} • {visibility}
@@ -558,47 +709,57 @@ function WriterContentEditor({
               <h4 className="mt-3 text-xl font-semibold text-white">
                 {title || "Untitled draft"}
               </h4>
-
-              <div className="prose prose-invert mt-4 max-w-none prose-headings:text-white prose-p:text-white/75 prose-strong:text-white prose-code:text-amber-300">
-                <MarkdownPreview
-                  content={
-                    body.trim() ||
-                    excerpt.trim() ||
-                    "Your draft preview will appear here."
-                  }
-                />
-              </div>
+              <p className="mt-3 line-clamp-4 break-words text-sm leading-6 text-white/65">
+                {body.trim() || excerpt.trim() || "Your draft preview will appear here."}
+              </p>
             </div>
           </div>
 
-          {updateMutation.isError || submitMutation.isError ? (
-            <p className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-100">
+          {updateMutation.isError || uploadAssetsMutation.isError || submitMutation.isError ? (
+            <div className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
               {actionError}
-            </p>
+            </div>
           ) : null}
 
           {updateMutation.isSuccess ? (
-            <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
+            <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
               Changes saved.
             </div>
           ) : null}
 
           {submitMutation.isSuccess ? (
-            <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
+            <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
               Content submitted for review.
             </div>
           ) : null}
 
-          <div className="flex flex-wrap gap-3">
-            <button
-              type="submit"
-              disabled={!editable || updateMutation.isPending}
-              className="rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-black disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {updateMutation.isPending ? "Saving..." : "Save changes"}
-            </button>
+          <div className="rounded-[2rem] border border-white/10 bg-black/20 p-5">
+            <div className="flex flex-col gap-3">
+              <button
+                type="submit"
+                disabled={!editable || updateMutation.isPending || uploadAssetsMutation.isPending}
+                className="rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-black disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {updateMutation.isPending
+                  ? "Saving..."
+                  : uploadAssetsMutation.isPending
+                    ? "Uploading attachments..."
+                    : "Save changes"}
+              </button>
+
+              {submittable ? (
+                <button
+                  type="button"
+                  onClick={() => submitMutation.mutate()}
+                  disabled={submitMutation.isPending}
+                  className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white/80 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  {submitLabel}
+                </button>
+              ) : null}
+            </div>
           </div>
-        </div>
+        </aside>
       </form>
     </div>
   );
@@ -632,14 +793,12 @@ export default function WriterContentEditPage() {
   });
 
   const moderationNote = useMemo(() => {
-    return (
-      moderationQuery.data?.find((log) => log.action === "REJECTED")?.note ?? null
-    );
+    return moderationQuery.data?.find((log) => log.action === "REJECTED")?.note ?? null;
   }, [moderationQuery.data]);
 
   return (
     <RoleGuard allowedRoles={["WRITER", "TEACHER", "ADMIN"]}>
-      <div className="mx-auto max-w-6xl space-y-8 pb-10">
+      <div className="mx-auto max-w-6xl space-y-8 overflow-x-hidden px-3 pb-10 sm:px-0">
         {contentQuery.isLoading ? <LoadingState label="Loading content..." /> : null}
 
         {contentQuery.isError ? (

@@ -29,9 +29,10 @@ import type {
   RoleUpgradeRequest,
   RoleUpgradeRequestListResponse,
   GlobalSearchResponse,
-  MessageResponse
+  MessageResponse,
+  CreateContentPayload,
 } from "@/lib/types";
-import { request } from "https";
+// import { request } from "https";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/$/, "") ?? "";
 
@@ -41,6 +42,7 @@ type ApiRequestOptions = {
   method?: "GET" | "POST" | "PATCH" | "DELETE";
   body?: unknown;
   auth?: boolean;
+  isFormData?: boolean;
 };
 
 export class ApiError extends Error {
@@ -54,6 +56,30 @@ export class ApiError extends Error {
   }
 }
 
+function normalizeApiDetail(detail: unknown): string {
+  if (typeof detail === "string") return detail;
+
+  if (Array.isArray(detail)) {
+    return detail
+      .map((item) => normalizeApiDetail(item))
+      .filter(Boolean)
+      .join(", ");
+  }
+
+  if (detail && typeof detail === "object") {
+    const value = detail as Record<string, unknown>;
+    if (typeof value.msg === "string") return value.msg;
+    if (typeof value.detail === "string") return value.detail;
+    try {
+      return JSON.stringify(detail);
+    } catch {
+      return "Something went wrong.";
+    }
+  }
+
+  return "Something went wrong.";
+}
+
 function apiUrl(path: string) {
   const cleanPath = path.startsWith("/") ? path : `/${path}`;
   return `${API_BASE_URL}${API_PREFIX}${cleanPath}`;
@@ -63,9 +89,11 @@ async function apiRequest<T>(
   path: string,
   options: ApiRequestOptions = {},
 ): Promise<T> {
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-  };
+  const headers: HeadersInit = {};
+
+  if (!options.isFormData) {
+    headers["Content-Type"] = "application/json";
+  }
 
   if (options.auth) {
     const token = getAccessToken();
@@ -77,7 +105,11 @@ async function apiRequest<T>(
   const response = await fetch(apiUrl(path), {
     method: options.method ?? "GET",
     headers,
-    body: options.body ? JSON.stringify(options.body) : undefined,
+    body: options.body
+      ? options.isFormData
+        ? (options.body as FormData)
+        : JSON.stringify(options.body)
+      : undefined,
   });
 
   if (!response.ok) {
@@ -85,9 +117,9 @@ async function apiRequest<T>(
 
     try {
       const data = await response.json();
-      detail = data.detail ?? detail;
+      detail = normalizeApiDetail((data as { detail?: unknown }).detail ?? data);
     } catch {
-      detail = response.statusText;
+      detail = response.statusText || detail;
     }
 
     throw new ApiError(response.status, detail);
@@ -198,11 +230,22 @@ export const api = {
     is_premium: boolean;
     category_id?: string;
     hub_id?: string;
-    cover_image_url?: string;
+    cover_image_url?: string | null;
   }) {
     return apiRequest<Content>("/content", {
       method: "POST",
-      body: payload,
+      body: {
+        title: payload.title,
+        slug: payload.slug,
+        excerpt: payload.excerpt,
+        body: payload.body,
+        content_type: payload.content_type,
+        visibility: payload.visibility,
+        is_premium: payload.is_premium,
+        category_id: payload.category_id,
+        hub_id: payload.hub_id,
+        cover_image_url: payload.cover_image_url ?? null,
+      },
       auth: true,
     });
   },
@@ -785,6 +828,28 @@ export const api = {
     return apiRequest<void>(`/comments/${commentId}/like`, {
       method: "DELETE",
       auth: true,
+    });
+  },
+
+  uploadContentAssets(
+    contentId: string,
+    payload: { images?: File[]; files?: File[] },
+  ) {
+    const formData = new FormData();
+
+    payload.images?.forEach((file) => {
+      formData.append("images", file);
+    });
+
+    payload.files?.forEach((file) => {
+      formData.append("files", file);
+    });
+
+    return apiRequest(`/content/${contentId}/assets`, {
+      method: "POST",
+      body: formData,
+      auth: true,
+      isFormData: true,
     });
   },
 };
