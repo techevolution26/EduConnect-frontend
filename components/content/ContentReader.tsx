@@ -1,3 +1,6 @@
+"use client";
+
+import Image from "next/image";
 import Link from "next/link";
 
 import type { ContentDetail } from "@/lib/types";
@@ -57,6 +60,62 @@ function getFileLabel(asset: ContentAsset) {
     return asset.filename || "Download file";
 }
 
+function isLocalUploadUrl(url: string) {
+    return (
+        url.startsWith("http://localhost:8000/") ||
+        url.startsWith("http://127.0.0.1:8000/")
+    );
+}
+
+function ResponsiveImage({
+    src,
+    alt,
+    caption,
+    priority = false,
+    variant = "gallery",
+}: {
+    src: string;
+    alt: string;
+    caption?: string | null;
+    priority?: boolean;
+    variant?: "cover" | "gallery";
+}) {
+    const local = isLocalUploadUrl(src);
+
+    return (
+        <figure className="overflow-hidden rounded-[1.5rem] border border-white/10 bg-black/20">
+            <div
+                className={[
+                    "relative w-full overflow-hidden bg-black/30",
+                    variant === "cover"
+                        ? "aspect-[16/9] max-h-[28rem] sm:aspect-[21/9] sm:max-h-[32rem]"
+                        : "aspect-[16/10] sm:aspect-[4/3]",
+                ].join(" ")}
+            >
+                <Image
+                    src={src}
+                    alt={alt}
+                    fill
+                    priority={priority}
+                    unoptimized={local}
+                    sizes={
+                        variant === "cover"
+                            ? "(max-width: 640px) 100vw, 92vw"
+                            : "(max-width: 640px) 100vw, (max-width: 1024px) 48vw, 420px"
+                    }
+                    className="object-cover object-center"
+                />
+            </div>
+
+            {caption ? (
+                <figcaption className="border-t border-white/10 px-4 py-3 text-xs text-white/45">
+                    {caption}
+                </figcaption>
+            ) : null}
+        </figure>
+    );
+}
+
 export default function ContentReader({ content }: { content: ContentDetail }) {
     const assets = (content.assets ?? []) as ContentAsset[];
     const imageAssets = assets.filter((asset) => asset.asset_type === "IMAGE");
@@ -83,10 +142,11 @@ export default function ContentReader({ content }: { content: ContentDetail }) {
 
             {coverImage ? (
                 <div className="mt-6 overflow-hidden rounded-[2rem] border border-white/10 bg-black/20">
-                    <img
+                    <ResponsiveImage
                         src={coverImage}
                         alt={content.title}
-                        className="h-auto w-full object-cover"
+                        priority
+                        variant="cover"
                     />
                 </div>
             ) : null}
@@ -96,7 +156,9 @@ export default function ContentReader({ content }: { content: ContentDetail }) {
             </h1>
 
             {content.excerpt ? (
-                <p className="mt-5 text-lg leading-8 text-white/65">{content.excerpt}</p>
+                <p className="mt-5 text-lg leading-8 text-white/65">
+                    {content.excerpt}
+                </p>
             ) : null}
 
             <div className="mt-6 flex flex-col gap-3 border-t border-white/10 pt-5 text-sm text-white/50 sm:flex-row sm:items-center sm:justify-between">
@@ -158,21 +220,13 @@ export default function ContentReader({ content }: { content: ContentDetail }) {
 
                             <div className="grid gap-4 sm:grid-cols-2">
                                 {galleryImages.map((asset) => (
-                                    <figure
+                                    <ResponsiveImage
                                         key={asset.id}
-                                        className="overflow-hidden rounded-[1.75rem] border border-white/10 bg-black/20"
-                                    >
-                                        <img
-                                            src={asset.url}
-                                            alt={asset.filename || content.title}
-                                            className="h-auto w-full object-cover"
-                                        />
-                                        {asset.filename ? (
-                                            <figcaption className="border-t border-white/10 px-4 py-3 text-xs text-white/45">
-                                                {asset.filename}
-                                            </figcaption>
-                                        ) : null}
-                                    </figure>
+                                        src={asset.url}
+                                        alt={asset.filename || content.title}
+                                        caption={asset.filename}
+                                        variant="gallery"
+                                    />
                                 ))}
                             </div>
                         </section>
