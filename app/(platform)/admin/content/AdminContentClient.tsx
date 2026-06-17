@@ -1,8 +1,9 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { X } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import RoleGuard from "@/components/auth/RoleGuard";
 import EmptyState from "@/components/ui/EmptyState";
@@ -12,7 +13,37 @@ import type {
     ChildrenAgeGroup,
     ContentStatus,
     ContentType,
+    ContentVisibility,
 } from "@/lib/types";
+
+type AdminContentAsset = {
+    id: string;
+    asset_type: "IMAGE" | "FILE" | string;
+    url: string;
+    filename?: string | null;
+    mime_type?: string | null;
+};
+
+type AdminContentItem = {
+    id: string;
+    title: string;
+    slug: string;
+    excerpt: string | null;
+    body: string;
+    content_type: ContentType;
+    visibility: ContentVisibility;
+    is_premium: boolean;
+    is_featured: boolean;
+    status: ContentStatus;
+    created_at?: string;
+    updated_at?: string;
+    author?: {
+        full_name?: string | null;
+        username?: string | null;
+    } | null;
+    cover_image_url?: string | null;
+    assets?: AdminContentAsset[];
+};
 
 const statusOptions: Array<ContentStatus | ""> = [
     "",
@@ -27,12 +58,25 @@ const contentTypeOptions: Array<ContentType | ""> = [
     "",
     "ARTICLE",
     "STORY",
+    "FICTION",
     "POEM",
     "FAITH",
     "EDUCATION",
     "CHILDREN",
     "NEWS",
     "AUDIO",
+    "WRITING_TIPS",
+    "SELF_IMPROVEMENT",
+    "RELATIONSHIP",
+    "MONEY_FINANCE",
+    "MEDICINE",
+    "PSYCHOLOGY",
+    "MENTAL_HEALTH",
+    "HUMOR",
+    "WOMEN",
+    "FITNESS",
+    "SELF_AWARENESS",
+    "PARENTING",
 ];
 
 const ageGroupOptions: ChildrenAgeGroup[] = [
@@ -59,6 +103,36 @@ function statusBadge(status: ContentStatus) {
     return classes[status];
 }
 
+function getAuthorLabel(content: AdminContentItem) {
+    return (
+        content.author?.full_name ??
+        content.author?.username ??
+        "Unknown author"
+    );
+}
+
+function formatDate(value?: string) {
+    if (!value) return "";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "";
+    return date.toLocaleString();
+}
+
+function renderBody(body: string) {
+    return body.split("\n").map((paragraph, index) => {
+        const trimmed = paragraph.trim();
+        if (!trimmed) {
+            return <div key={index} className="h-4" />;
+        }
+
+        return (
+            <p key={index} className="text-sm leading-7 text-white/75">
+                {trimmed}
+            </p>
+        );
+    });
+}
+
 export default function AdminContentClient() {
     const queryClient = useQueryClient();
 
@@ -71,6 +145,7 @@ export default function AdminContentClient() {
     const [ageGroupByContentId, setAgeGroupByContentId] = useState<
         Record<string, ChildrenAgeGroup>
     >({});
+    const [selectedContent, setSelectedContent] = useState<AdminContentItem | null>(null);
 
     const contentQuery = useQuery({
         queryKey: ["admin", "content", search, statusFilter, typeFilter],
@@ -89,6 +164,7 @@ export default function AdminContentClient() {
             queryClient.invalidateQueries({ queryKey: ["admin", "content"] });
             queryClient.invalidateQueries({ queryKey: ["admin", "dashboard"] });
             queryClient.invalidateQueries({ queryKey: ["feed"] });
+            setSelectedContent(null);
         },
     });
 
@@ -98,6 +174,7 @@ export default function AdminContentClient() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["admin", "content"] });
             queryClient.invalidateQueries({ queryKey: ["admin", "dashboard"] });
+            setSelectedContent(null);
         },
     });
 
@@ -153,7 +230,23 @@ export default function AdminContentClient() {
         toggleFeatureMutation.error,
     ]);
 
-    const items = contentQuery.data?.items ?? [];
+    const items = (contentQuery.data?.items ?? []) as AdminContentItem[];
+
+    useEffect(() => {
+        function onKeyDown(event: KeyboardEvent) {
+            if (event.key === "Escape") {
+                setSelectedContent(null);
+            }
+        }
+
+        if (selectedContent) {
+            document.addEventListener("keydown", onKeyDown);
+        }
+
+        return () => {
+            document.removeEventListener("keydown", onKeyDown);
+        };
+    }, [selectedContent]);
 
     return (
         <RoleGuard allowedRoles={["ADMIN", "MODERATOR"]}>
@@ -168,9 +261,8 @@ export default function AdminContentClient() {
                     </h1>
 
                     <p className="mt-4 max-w-2xl text-sm leading-6 text-white/60">
-                        Review submissions, publish approved content, reject unsafe content,
-                        and place published children’s content into the age-grouped children
-                        library.
+                        Review submissions, open content in a readable preview, approve or reject,
+                        and place published children’s content into the age-grouped children library.
                     </p>
                 </section>
 
@@ -249,7 +341,8 @@ export default function AdminContentClient() {
                 {items.length > 0 ? (
                     <section className="space-y-4">
                         {items.map((content) => {
-                            const selectedAgeGroup = ageGroupByContentId[content.id] ?? "AGE_6_9";
+                            const selectedAgeGroup =
+                                ageGroupByContentId[content.id] ?? "AGE_6_9";
 
                             const canAttachToChildren =
                                 content.content_type === "CHILDREN" &&
@@ -276,6 +369,10 @@ export default function AdminContentClient() {
                                         <div>
                                             <h2 className="text-2xl font-semibold">{content.title}</h2>
                                             <p className="mt-1 text-xs text-white/35">/{content.slug}</p>
+                                            <p className="mt-2 text-xs text-white/45">
+                                                By {getAuthorLabel(content)}
+                                                {content.created_at ? ` • ${formatDate(content.created_at)}` : ""}
+                                            </p>
                                         </div>
 
                                         <span
@@ -299,28 +396,34 @@ export default function AdminContentClient() {
                                         </p>
                                     </div>
 
-                                    <div className="mt-5 flex flex-col gap-4">
-                                        <div className="flex flex-wrap gap-2">
-                                            {content.status === "PUBLISHED" ? (
-                                                <Link
-                                                    href={`/read/${content.slug}`}
-                                                    className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/75 hover:bg-white/10"
-                                                >
-                                                    Open public page
-                                                </Link>
-                                            ) : null}
+                                    <div className="mt-5 flex flex-wrap gap-3">
+                                        <button
+                                            type="button"
+                                            onClick={() => setSelectedContent(content)}
+                                            className="rounded-2xl bg-white px-4 py-2 text-sm font-semibold text-black"
+                                        >
+                                            Preview & review
+                                        </button>
 
-                                            {content.status === "PENDING_REVIEW" ? (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => approveMutation.mutate(content.id)}
-                                                    disabled={approveMutation.isPending}
-                                                    className="rounded-2xl bg-white px-4 py-2 text-sm font-semibold text-black disabled:opacity-60"
-                                                >
-                                                    Approve
-                                                </button>
-                                            ) : null}
-                                        </div>
+                                        {content.status === "PUBLISHED" ? (
+                                            <Link
+                                                href={`/read/${content.slug}`}
+                                                className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/75 hover:bg-white/10"
+                                            >
+                                                Open public page
+                                            </Link>
+                                        ) : null}
+
+                                        {content.status === "PENDING_REVIEW" ? (
+                                            <button
+                                                type="button"
+                                                onClick={() => approveMutation.mutate(content.id)}
+                                                disabled={approveMutation.isPending}
+                                                className="rounded-2xl bg-white px-4 py-2 text-sm font-semibold text-black disabled:opacity-60"
+                                            >
+                                                Approve
+                                            </button>
+                                        ) : null}
 
                                         {content.status === "PENDING_REVIEW" ? (
                                             <div className="grid gap-2 md:grid-cols-[1fr_auto]">
@@ -359,8 +462,8 @@ export default function AdminContentClient() {
                                             onClick={() => toggleFeatureMutation.mutate(content.id)}
                                             disabled={toggleFeatureMutation.isPending}
                                             className={`rounded-2xl px-4 py-2 text-sm font-semibold transition disabled:opacity-60 ${content.is_featured
-                                                ? "border border-amber-300/40 bg-gradient-to-r from-amber-300 to-orange-400 text-black shadow-[0_0_0_1px_rgba(251,191,36,0.35),0_10px_30px_rgba(251,191,36,0.25)]"
-                                                : "border border-fuchsia-400/30 bg-gradient-to-r from-fuchsia-500/20 to-cyan-500/20 text-white shadow-[0_0_0_1px_rgba(217,70,239,0.18)] hover:from-fuchsia-500/30 hover:to-cyan-500/30 hover:text-white"
+                                                ? "border border-amber-300/40 bg-gradient-to-r from-amber-300 to-orange-400 text-black"
+                                                : "border border-fuchsia-400/30 bg-gradient-to-r from-fuchsia-500/20 to-cyan-500/20 text-white"
                                                 }`}
                                         >
                                             {toggleFeatureMutation.isPending
@@ -448,6 +551,189 @@ export default function AdminContentClient() {
                     />
                 ) : null}
             </div>
+
+            {selectedContent ? (
+                <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 px-3 py-6 backdrop-blur-sm">
+                    <div className="mx-auto flex min-h-full max-w-5xl items-center">
+                        <div className="w-full overflow-hidden rounded-[2rem] border border-white/10 bg-[#0b0d12] shadow-2xl">
+                            <div className="flex items-center justify-between gap-3 border-b border-white/10 px-5 py-4">
+                                <div className="min-w-0">
+                                    <p className="text-xs uppercase tracking-[0.24em] text-white/40">
+                                        Preview
+                                    </p>
+                                    <h2 className="mt-1 truncate text-xl font-semibold text-white">
+                                        {selectedContent.title}
+                                    </h2>
+                                </div>
+
+                                <button
+                                    type="button"
+                                    onClick={() => setSelectedContent(null)}
+                                    className="rounded-full border border-white/10 bg-white/5 p-2 text-white/70 hover:bg-white/10"
+                                >
+                                    <X className="h-5 w-5" />
+                                </button>
+                            </div>
+
+                            <div className="max-h-[calc(100vh-8rem)] overflow-y-auto">
+                                <div className="grid gap-0 lg:grid-cols-[1.25fr_0.75fr]">
+                                    <div className="px-5 py-5">
+                                        <div className="flex flex-wrap items-center gap-2 text-xs uppercase tracking-[0.18em] text-white/40">
+                                            <span>{selectedContent.content_type}</span>
+                                            <span>•</span>
+                                            <span>{selectedContent.visibility}</span>
+                                            {selectedContent.is_premium ? (
+                                                <>
+                                                    <span>•</span>
+                                                    <span>Premium</span>
+                                                </>
+                                            ) : null}
+                                        </div>
+
+                                        <div className="mt-4 rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
+                                            <p className="text-sm font-medium text-white/80">
+                                                By {getAuthorLabel(selectedContent)}
+                                            </p>
+                                            <p className="mt-1 text-xs text-white/45">
+                                                {selectedContent.created_at
+                                                    ? formatDate(selectedContent.created_at)
+                                                    : ""}
+                                            </p>
+                                        </div>
+
+                                        {selectedContent.excerpt ? (
+                                            <div className="mt-4 rounded-[1.5rem] border border-amber-400/20 bg-amber-400/10 p-4">
+                                                <p className="text-xs uppercase tracking-[0.2em] text-amber-100/70">
+                                                    Excerpt
+                                                </p>
+                                                <p className="mt-2 text-sm leading-6 text-amber-50/80">
+                                                    {selectedContent.excerpt}
+                                                </p>
+                                            </div>
+                                        ) : null}
+
+                                        <div className="mt-4 rounded-[1.5rem] border border-white/10 bg-black/20 p-5">
+                                            <div className="prose prose-invert max-w-none">
+                                                {renderBody(selectedContent.body)}
+                                            </div>
+                                        </div>
+
+                                        {selectedContent.assets && selectedContent.assets.length > 0 ? (
+                                            <div className="mt-5 rounded-[1.5rem] border border-white/10 bg-black/20 p-4">
+                                                <h3 className="text-sm font-semibold text-white">Attachments</h3>
+                                                <div className="mt-3 space-y-2">
+                                                    {selectedContent.assets.map((asset) => (
+                                                        <a
+                                                            key={asset.id}
+                                                            href={asset.url}
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                            className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/75 hover:bg-white/10"
+                                                        >
+                                                            <span className="truncate">
+                                                                {asset.filename || asset.asset_type}
+                                                            </span>
+                                                            <span className="shrink-0 text-white/40">
+                                                                {asset.asset_type}
+                                                            </span>
+                                                        </a>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ) : null}
+                                    </div>
+
+                                    <div className="border-t border-white/10 px-5 py-5 lg:border-l lg:border-t-0">
+                                        <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
+                                            <h3 className="text-sm font-semibold text-white">Actions</h3>
+
+                                            <div className="mt-4 space-y-3">
+                                                {selectedContent.status === "PENDING_REVIEW" ? (
+                                                    <>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => approveMutation.mutate(selectedContent.id)}
+                                                            disabled={approveMutation.isPending}
+                                                            className="w-full rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-black disabled:opacity-60"
+                                                        >
+                                                            Approve
+                                                        </button>
+
+                                                        <input
+                                                            value={rejectReasonById[selectedContent.id] ?? ""}
+                                                            onChange={(event) =>
+                                                                setRejectReasonById((current) => ({
+                                                                    ...current,
+                                                                    [selectedContent.id]: event.target.value,
+                                                                }))
+                                                            }
+                                                            placeholder="Rejection reason..."
+                                                            className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-white/30"
+                                                        />
+
+                                                        <button
+                                                            type="button"
+                                                            onClick={() =>
+                                                                rejectMutation.mutate({
+                                                                    contentId: selectedContent.id,
+                                                                    reason:
+                                                                        rejectReasonById[selectedContent.id] ||
+                                                                        "Content does not meet publishing guidelines.",
+                                                                })
+                                                            }
+                                                            disabled={rejectMutation.isPending}
+                                                            className="w-full rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-100 disabled:opacity-60"
+                                                        >
+                                                            Reject
+                                                        </button>
+                                                    </>
+                                                ) : null}
+
+                                                {selectedContent.status === "PUBLISHED" ? (
+                                                    <Link
+                                                        href={`/read/${selectedContent.slug}`}
+                                                        className="block w-full rounded-2xl bg-white px-4 py-3 text-center text-sm font-semibold text-black"
+                                                    >
+                                                        Open public page
+                                                    </Link>
+                                                ) : null}
+
+                                                {selectedContent.content_type === "CHILDREN" &&
+                                                    selectedContent.status === "PUBLISHED" ? (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            attachChildrenMutation.mutate({
+                                                                contentId: selectedContent.id,
+                                                                ageGroup: "AGE_6_9",
+                                                            })
+                                                        }
+                                                        disabled={attachChildrenMutation.isPending}
+                                                        className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/75 hover:bg-white/10 disabled:opacity-60"
+                                                    >
+                                                        Add to children library
+                                                    </button>
+                                                ) : null}
+                                            </div>
+
+                                            <p className="mt-4 text-xs leading-5 text-white/40">
+                                                Read the full piece here before deciding. Use Escape or the X
+                                                button to close this preview.
+                                            </p>
+                                        </div>
+
+                                        {approveMutation.isError || rejectMutation.isError ? (
+                                            <div className="mt-4 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                                                {mutationError}
+                                            </div>
+                                        ) : null}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            ) : null}
         </RoleGuard>
     );
 }

@@ -11,25 +11,41 @@ import {
   Users,
 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ComponentType } from "react";
 
 import ContentCard from "@/components/content/ContentCard";
 import EmptyState from "@/components/ui/EmptyState";
 import LoadingState from "@/components/ui/LoadingState";
 import { api } from "@/lib/api";
 import { getAccessToken } from "@/lib/auth";
-import type { ContentType } from "@/lib/types";
+import type { Content, ContentType } from "@/lib/types";
 
 type FeedTab = "discover" | "for-you";
+
+type FeedItem = Content;
 
 const contentTypeFilters: Array<{ label: string; value: ContentType | "" }> = [
   { label: "All", value: "" },
   { label: "Stories", value: "STORY" },
+  { label: "Fiction", value: "FICTION" },
   { label: "Poetry", value: "POEM" },
   { label: "Faith", value: "FAITH" },
   { label: "Education", value: "EDUCATION" },
   { label: "Children", value: "CHILDREN" },
-  { label: "Tech", value: "ARTICLE" },
+  { label: "News", value: "NEWS" },
+  { label: "Audio", value: "AUDIO" },
+  { label: "Writing tips", value: "WRITING_TIPS" },
+  { label: "Self improvement", value: "SELF_IMPROVEMENT" },
+  { label: "Relationship", value: "RELATIONSHIP" },
+  { label: "Money / finance", value: "MONEY_FINANCE" },
+  { label: "Medicine", value: "MEDICINE" },
+  { label: "Psychology", value: "PSYCHOLOGY" },
+  { label: "Mental health", value: "MENTAL_HEALTH" },
+  { label: "Humor", value: "HUMOR" },
+  { label: "Women", value: "WOMEN" },
+  { label: "Fitness", value: "FITNESS" },
+  { label: "Self awareness", value: "SELF_AWARENESS" },
+  { label: "Parenting", value: "PARENTING" },
 ];
 
 function QuickLink({
@@ -41,16 +57,23 @@ function QuickLink({
   href: string;
   label: string;
   description: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: ComponentType<{ className?: string }>;
 }) {
   return (
     <Link
       href={href}
-      className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-5 transition hover:-translate-y-0.5 hover:bg-white/[0.07]"
+      className="group rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-5 transition hover:bg-white/[0.06] hover:border-white/20"
     >
-      <Icon className="h-5 w-5 text-white/45" />
-      <h3 className="mt-4 text-lg font-semibold text-white">{label}</h3>
-      <p className="mt-2 text-sm leading-6 text-white/55">{description}</p>
+      <div className="flex items-start gap-3">
+        <div className="rounded-2xl border border-white/10 bg-black/20 p-3 text-white/80 transition group-hover:bg-white/10 group-hover:text-white">
+          <Icon className="h-5 w-5" />
+        </div>
+
+        <div className="min-w-0">
+          <h3 className="text-sm font-semibold text-white">{label}</h3>
+          <p className="mt-1 text-sm leading-6 text-white/55">{description}</p>
+        </div>
+      </div>
     </Link>
   );
 }
@@ -65,10 +88,10 @@ function PinnedStat({
   helper: string;
 }) {
   return (
-    <div className="rounded-[1.75rem] border border-white/10 bg-black/20 p-4">
+    <div className="rounded-[1.25rem] border border-white/10 bg-black/20 p-4">
       <p className="text-xs uppercase tracking-[0.22em] text-white/35">{label}</p>
       <p className="mt-2 text-2xl font-semibold text-white">{value}</p>
-      <p className="mt-2 text-sm leading-6 text-white/55">{helper}</p>
+      <p className="mt-1 text-sm text-white/45">{helper}</p>
     </div>
   );
 }
@@ -95,6 +118,237 @@ function getCoverTone(item: unknown) {
   };
 
   return value.cover_color ?? value.accent_color ?? value.hero_color ?? "#0f1117";
+}
+
+function FeedTabs({
+  activeTab,
+  setActiveTab,
+  contentType,
+  setContentType,
+  isAuthenticated,
+}: {
+  activeTab: FeedTab;
+  setActiveTab: (tab: FeedTab) => void;
+  contentType: ContentType | "";
+  setContentType: (type: ContentType | "") => void;
+  isAuthenticated: boolean;
+}) {
+  return (
+    <section className="flex flex-col gap-4 rounded-[2rem] border border-white/10 bg-white/[0.04] p-4 md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={() => setActiveTab("discover")}
+          className={`rounded-2xl px-4 py-2 text-sm transition ${activeTab === "discover"
+            ? "bg-white text-black"
+            : "border border-white/10 bg-white/5 text-white/70 hover:bg-white/10"
+            }`}
+        >
+          Discover
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab("for-you")}
+          className={`inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-sm transition ${activeTab === "for-you"
+            ? "bg-white text-black"
+            : "border border-white/10 bg-white/5 text-white/70 hover:bg-white/10"
+            }`}
+        >
+          {!isAuthenticated ? <Lock className="h-3.5 w-3.5" /> : null}
+          For you
+        </button>
+      </div>
+
+      {activeTab === "discover" ? (
+        <div className="flex gap-2 overflow-x-auto pb-1 md:max-w-[60%]">
+          {contentTypeFilters.map((filter) => {
+            const active = contentType === filter.value;
+
+            return (
+              <button
+                key={filter.label}
+                type="button"
+                onClick={() => setContentType(filter.value)}
+                className={`shrink-0 rounded-2xl px-4 py-2 text-sm transition ${active
+                  ? "bg-white text-black"
+                  : "border border-white/10 bg-white/5 text-white/65 hover:bg-white/10 hover:text-white"
+                  }`}
+              >
+                {filter.label}
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
+function GuestHero() {
+  return (
+    <div className="relative grid gap-8 lg:grid-cols-[1.25fr_0.75fr] lg:items-end">
+      <div>
+        <p className="text-xs uppercase tracking-[0.28em] text-white/40">
+          Reading ecosystem
+        </p>
+
+        <h1 className="mt-3 max-w-4xl text-4xl font-semibold tracking-tight text-white sm:text-5xl lg:text-6xl">
+          Discover stories, lessons, faith, and community voices.
+        </h1>
+
+        <p className="mt-4 max-w-2xl text-sm leading-7 text-white/65 sm:text-base">
+          A public window into African-centered storytelling, education,
+          children-safe learning, faith content, and creator-led publishing.
+        </p>
+
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Link
+            href="/register"
+            className="rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-black transition hover:scale-[1.01] hover:bg-white/90"
+          >
+            Join the community
+          </Link>
+
+          <Link
+            href="/login"
+            className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/75 transition hover:bg-white/10"
+          >
+            Login
+          </Link>
+
+          <Link
+            href="/search"
+            className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/75 transition hover:bg-white/10"
+          >
+            <Search className="h-4 w-4" />
+            Search ecosystem
+          </Link>
+        </div>
+      </div>
+
+      <div className="relative rounded-[2rem] border border-white/10 bg-black/25 p-5 backdrop-blur">
+        <div className="flex items-center gap-3">
+          <Sparkles className="h-5 w-5 text-amber-200/80" />
+          <h2 className="font-semibold text-white">What you can explore</h2>
+        </div>
+
+        <div className="mt-4 grid gap-3 text-sm text-white/60">
+          <p>• Public stories, poems, faith posts, and lessons</p>
+          <p>• Hubs for shared interests and community discovery</p>
+          <p>• Partner-only content previews before joining</p>
+          <p>• Personalized feed after login</p>
+        </div>
+
+        <div className="mt-5 grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
+          <PinnedStat
+            label="Public"
+            value="Open"
+            helper="Discovery feed is public"
+          />
+          <PinnedStat
+            label="Premium"
+            value="Partner"
+            helper="Supports creator earnings"
+          />
+          <PinnedStat
+            label="Safety"
+            value="Curated"
+            helper="Moderated and structured"
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AuthHero({
+  activeTab,
+  spotlight,
+  spotlightTone,
+}: {
+  activeTab: FeedTab;
+  spotlight: FeedItem | null;
+  spotlightTone: string;
+}) {
+  const spotlightCoverUrl = getCoverImageUrl(spotlight);
+
+  return (
+    <section className="space-y-4">
+      <article className="relative overflow-hidden rounded-[2.5rem] border border-white/10 p-6 shadow-[0_24px_80px_rgba(0,0,0,0.42)] sm:p-8 lg:p-10">
+        <div
+          className="absolute inset-0"
+          style={
+            spotlightCoverUrl
+              ? {
+                backgroundImage: `linear-gradient(135deg, rgba(2,6,23,0.40), rgba(2,6,23,0.78)), url(${spotlightCoverUrl})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              }
+              : {
+                backgroundImage: `linear-gradient(135deg, ${spotlightTone}, #111827 55%, #020617)`,
+              }
+          }
+        />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(251,191,36,0.14),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(34,197,94,0.10),transparent_28%),radial-gradient(circle_at_center,rgba(14,165,233,0.10),transparent_34%)]" />
+
+        <div className="relative flex min-h-[36vh] flex-col justify-end lg:min-h-[48vh]">
+          <div className="inline-flex w-fit items-center gap-2 rounded-full border border-amber-400/20 bg-amber-500/10 px-4 py-2 text-xs font-medium uppercase tracking-[0.22em] text-amber-200">
+            <Sparkles className="h-3.5 w-3.5" />
+            {activeTab === "for-you" ? "Your feed" : "Featured content"}
+          </div>
+
+          <h1 className="mt-4 max-w-5xl text-3xl font-semibold tracking-tight text-white sm:text-4xl lg:text-6xl">
+            {spotlight ? spotlight.title : "Your content feed is ready"}
+          </h1>
+
+          <p className="mt-4 max-w-3xl text-sm leading-7 text-white/75 sm:text-base">
+            {spotlight?.excerpt ||
+              "Fresh content from the ecosystem, shaped around what you follow, read, and join."}
+          </p>
+
+          <div className="mt-6 flex flex-wrap gap-3">
+            {spotlight ? (
+              <Link
+                href={`/read/${spotlight.slug}`}
+                className="rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-black transition hover:scale-[1.01] hover:bg-white/90"
+              >
+                Open featured content
+              </Link>
+            ) : null}
+
+            {activeTab !== "for-you" ? (
+              <button
+                type="button"
+                onClick={() => {
+                  // parent handles this in a real action
+                }}
+                className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/75 transition hover:bg-white/10"
+              >
+                See For you
+              </button>
+            ) : null}
+
+            <Link
+              href="/search"
+              className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/75 transition hover:bg-white/10"
+            >
+              <Search className="h-4 w-4" />
+              Search ecosystem
+            </Link>
+          </div>
+        </div>
+      </article>
+    </section>
+  );
+}
+
+function FeedLoading({ activeTab, isAuthenticated }: { activeTab: FeedTab; isAuthenticated: boolean; }) {
+  if (activeTab === "for-you" && isAuthenticated) {
+    return <LoadingState label="Loading your personalized feed..." />;
+  }
+
+  return <LoadingState label="Loading feed..." />;
 }
 
 export default function FeedPage() {
@@ -125,10 +379,9 @@ export default function FeedPage() {
     enabled: mounted && isAuthenticated && activeTab === "for-you",
   });
 
-  const currentQuery = activeTab === "discover" ? discoverQuery : forYouQuery;
-
-  const discoverItems = discoverQuery.data?.items ?? [];
-  const forYouItems = forYouQuery.data?.items ?? [];
+  const discoverItems: FeedItem[] = discoverQuery.data?.items ?? [];
+  const forYouItems: FeedItem[] = forYouQuery.data?.items ?? [];
+  const currentQuery = activeTab === "for-you" ? forYouQuery : discoverQuery;
 
   const currentItems = activeTab === "for-you" ? forYouItems : discoverItems;
 
@@ -137,236 +390,52 @@ export default function FeedPage() {
     return discoverItems.find((item) => item.is_featured) ?? discoverItems[0] ?? null;
   }, [activeTab, discoverItems]);
 
-  const authenticatedSpotlight = useMemo(() => {
+  const spotlight = useMemo(() => {
     if (!isAuthenticated) return null;
+
     if (activeTab === "for-you") {
       return forYouItems[0] ?? discoverItems[0] ?? null;
     }
+
     return featured ?? discoverItems[0] ?? null;
   }, [activeTab, discoverItems, featured, forYouItems, isAuthenticated]);
+
+  const spotlightTone = getCoverTone(spotlight);
+
+  const rest =
+    activeTab === "discover" && featured
+      ? discoverItems.filter((item) => item.id !== featured.id)
+      : [];
 
   const authenticatedFallbackList = useMemo(() => {
     if (!isAuthenticated) return [];
     const source = activeTab === "for-you" ? forYouItems : discoverItems;
-    return source
-      .filter((item) => item.id !== authenticatedSpotlight?.id)
-      .slice(0, 4);
-  }, [activeTab, authenticatedSpotlight?.id, discoverItems, forYouItems, isAuthenticated]);
+    return source.filter((item) => item.id !== spotlight?.id).slice(0, 4);
+  }, [activeTab, discoverItems, forYouItems, isAuthenticated, spotlight?.id]);
 
-  const rest = useMemo(() => {
-    if (activeTab !== "discover" || !featured) return [];
-    return currentItems.filter((item) => item.id !== featured.id);
-  }, [activeTab, currentItems, featured]);
-
-  function selectForYou() {
-    setActiveTab("for-you");
-  }
-
-  const spotlightCoverUrl = getCoverImageUrl(authenticatedSpotlight);
-  const spotlightTone = getCoverTone(authenticatedSpotlight);
+  const showLoginGate = activeTab === "for-you" && mounted && !isAuthenticated;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {!isAuthenticated ? (
-        <section className="relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-gradient-to-br from-slate-950 via-zinc-950 to-black p-6 shadow-[0_24px_80px_rgba(0,0,0,0.42)] sm:p-8 lg:p-10">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(251,191,36,0.12),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(34,197,94,0.10),transparent_28%),radial-gradient(circle_at_center,rgba(14,165,233,0.08),transparent_34%)]" />
-
-          <div className="relative grid gap-8 lg:grid-cols-[1.25fr_0.75fr] lg:items-end">
-            <div>
-              <p className="text-xs uppercase tracking-[0.28em] text-white/40">
-                Reading ecosystem
-              </p>
-
-              <h1 className="mt-3 max-w-4xl text-4xl font-semibold tracking-tight text-white sm:text-5xl lg:text-6xl">
-                Discover stories, lessons, faith, and community voices.
-              </h1>
-
-              <p className="mt-4 max-w-2xl text-sm leading-7 text-white/65 sm:text-base">
-                A public window into African-centered storytelling, education,
-                children-safe learning, faith content, and creator-led publishing.
-              </p>
-
-              <div className="mt-6 flex flex-wrap gap-3">
-                <Link
-                  href="/register"
-                  className="rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-black transition hover:scale-[1.01] hover:bg-white/90"
-                >
-                  Join the community
-                </Link>
-
-                <Link
-                  href="/login"
-                  className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/75 transition hover:bg-white/10"
-                >
-                  Login
-                </Link>
-
-                <Link
-                  href="/search"
-                  className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/75 transition hover:bg-white/10"
-                >
-                  <Search className="h-4 w-4" />
-                  Search ecosystem
-                </Link>
-              </div>
-            </div>
-
-            <div className="relative rounded-[2rem] border border-white/10 bg-black/25 p-5 backdrop-blur">
-              <div className="flex items-center gap-3">
-                <Sparkles className="h-5 w-5 text-amber-200/80" />
-                <h2 className="font-semibold text-white">What you can explore</h2>
-              </div>
-
-              <div className="mt-4 grid gap-3 text-sm text-white/60">
-                <p>• Public stories, poems, faith posts, and lessons</p>
-                <p>• Hubs for shared interests and community discovery</p>
-                <p>• Partner-only content previews before joining</p>
-                <p>• Personalized feed after login</p>
-              </div>
-
-              <div className="mt-5 grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
-                <PinnedStat
-                  label="Public"
-                  value="Open"
-                  helper="Discovery feed is public"
-                />
-                <PinnedStat
-                  label="Premium"
-                  value="Partner"
-                  helper="Supports creator earnings"
-                />
-                <PinnedStat
-                  label="Safety"
-                  value="Curated"
-                  helper="Moderated and structured"
-                />
-              </div>
-            </div>
-          </div>
-        </section>
+        <GuestHero />
       ) : (
-        <section className="space-y-4">
-          <article className="relative overflow-hidden rounded-[2.5rem] border border-white/10 p-6 shadow-[0_24px_80px_rgba(0,0,0,0.42)] sm:p-8 lg:p-10">
-            <div
-              className="absolute inset-0"
-              style={
-                spotlightCoverUrl
-                  ? {
-                    backgroundImage: `linear-gradient(135deg, rgba(2,6,23,0.40), rgba(2,6,23,0.78)), url(${spotlightCoverUrl})`,
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                  }
-                  : {
-                    backgroundImage: `linear-gradient(135deg, ${spotlightTone}, #111827 55%, #020617)`,
-                  }
-              }
-            />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(251,191,36,0.14),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(34,197,94,0.10),transparent_28%),radial-gradient(circle_at_center,rgba(14,165,233,0.10),transparent_34%)]" />
-
-            <div className="relative min-h-[36vh] lg:min-h-[48vh] flex flex-col justify-end">
-              <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/20 bg-amber-500/10 px-4 py-2 text-xs font-medium uppercase tracking-[0.22em] text-amber-200 w-fit">
-                <Sparkles className="h-3.5 w-3.5" />
-                {activeTab === "for-you" ? "Your feed" : "Featured content"}
-              </div>
-
-              <h1 className="mt-4 max-w-5xl text-3xl font-semibold tracking-tight text-white sm:text-4xl lg:text-6xl">
-                {authenticatedSpotlight
-                  ? authenticatedSpotlight.title
-                  : "Your content feed is ready"}
-              </h1>
-
-              <p className="mt-4 max-w-3xl text-sm leading-7 text-white/75 sm:text-base">
-                {authenticatedSpotlight?.excerpt ||
-                  "Fresh content from the ecosystem, shaped around what you follow, read, and join."}
-              </p>
-
-              <div className="mt-6 flex flex-wrap gap-3">
-                {authenticatedSpotlight ? (
-                  <Link
-                    href={`/read/${authenticatedSpotlight.slug}`}
-                    className="rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-black transition hover:scale-[1.01] hover:bg-white/90"
-                  >
-                    Open featured content
-                  </Link>
-                ) : null}
-
-                {activeTab !== "for-you" ? (
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab("for-you")}
-                    className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/75 transition hover:bg-white/10"
-                  >
-                    See For you
-                  </button>
-                ) : null}
-
-                <Link
-                  href="/search"
-                  className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/75 transition hover:bg-white/10"
-                >
-                  <Search className="h-4 w-4" />
-                  Search ecosystem
-                </Link>
-              </div>
-            </div>
-          </article>
-
-          {/* {authenticatedFallbackList.length > 0 ? (
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              {authenticatedFallbackList.map((content) => (
-                <ContentCard key={content.id} content={content} />
-              ))}
-            </div>
-          ) : null} */}
-        </section>
+        <AuthHero
+          activeTab={activeTab}
+          spotlight={spotlight}
+          spotlightTone={spotlightTone}
+        />
       )}
 
-      <section className="flex flex-col gap-4 rounded-[2rem] border border-white/10 bg-white/[0.04] p-4 md:flex-row md:items-center md:justify-between">
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => setActiveTab("discover")}
-            className={`rounded-2xl px-4 py-2 text-sm transition ${activeTab === "discover"
-              ? "bg-white text-black"
-              : "border border-white/10 bg-white/5 text-white/70 hover:bg-white/10"
-              }`}
-          >
-            Discover
-          </button>
+      <FeedTabs
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        contentType={contentType}
+        setContentType={setContentType}
+        isAuthenticated={isAuthenticated}
+      />
 
-          <button
-            type="button"
-            onClick={selectForYou}
-            className={`inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-sm transition ${activeTab === "for-you"
-              ? "bg-white text-black"
-              : "border border-white/10 bg-white/5 text-white/70 hover:bg-white/10"
-              }`}
-          >
-            {!mounted || !isAuthenticated ? <Lock className="h-3.5 w-3.5" /> : null}
-            For you
-          </button>
-        </div>
-
-        {activeTab === "discover" ? (
-          <div className="flex gap-2 overflow-x-auto pb-1 md:max-w-[60%]">
-            {contentTypeFilters.map((filter) => (
-              <button
-                key={filter.label}
-                type="button"
-                onClick={() => setContentType(filter.value)}
-                className={`shrink-0 rounded-2xl px-4 py-2 text-sm transition ${contentType === filter.value
-                  ? "bg-white text-black"
-                  : "border border-white/10 bg-white/5 text-white/65 hover:bg-white/10 hover:text-white"
-                  }`}
-              >
-                {filter.label}
-              </button>
-            ))}
-          </div>
-        ) : null}
-      </section>
-
-      {activeTab === "for-you" && mounted && !isAuthenticated ? (
+      {showLoginGate ? (
         <section className="rounded-[2rem] border border-amber-500/30 bg-amber-500/10 p-6">
           <h2 className="text-xl font-semibold text-amber-100">
             Login to unlock your personalized feed
@@ -427,17 +496,14 @@ export default function FeedPage() {
         </section>
       ) : null}
 
-      {currentQuery.isLoading && activeTab !== "for-you" ? (
-        <LoadingState label="Loading feed..." />
+      {discoverQuery.isLoading || (forYouQuery.isLoading && activeTab === "for-you") ? (
+        <FeedLoading activeTab={activeTab} isAuthenticated={isAuthenticated} />
       ) : null}
 
-      {currentQuery.isLoading && activeTab === "for-you" && isAuthenticated ? (
-        <LoadingState label="Loading your personalized feed..." />
-      ) : null}
-
-      {currentQuery.isError && activeTab !== "for-you" ? (
+      {discoverQuery.isError && activeTab === "discover" ? (
         <div className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-          Something went wrong while loading the feed. Please refresh the page or try again later.
+          Something went wrong while loading the feed. Please refresh the page or
+          try again later.
         </div>
       ) : null}
 
@@ -498,8 +564,8 @@ export default function FeedPage() {
         </section>
       ) : null}
 
-      {!currentQuery.isLoading &&
-        !currentQuery.isError &&
+      {!discoverQuery.isLoading &&
+        !discoverQuery.isError &&
         activeTab === "discover" &&
         rest.length > 0 ? (
         <section className="space-y-4">
@@ -553,6 +619,25 @@ export default function FeedPage() {
           title="Your personalized feed is empty"
           description="Follow writers or join hubs to personalize this feed."
         />
+      ) : null}
+
+      {authenticatedFallbackList.length > 0 && activeTab === "for-you" ? (
+        <section className="space-y-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.24em] text-white/40">
+              More to explore
+            </p>
+            <h2 className="mt-2 text-2xl font-semibold text-white">
+              Suggested content
+            </h2>
+          </div>
+
+          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+            {authenticatedFallbackList.map((content) => (
+              <ContentCard key={content.id} content={content} />
+            ))}
+          </div>
+        </section>
       ) : null}
     </div>
   );
