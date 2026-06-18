@@ -11,7 +11,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "https://educonnect-backend-production-d207.up.railway.app",
+        hostname: "educonnect-backend-production-d207.up.railway.app",
         pathname: "/uploads/**",
       },
     ],
