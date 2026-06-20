@@ -61,10 +61,10 @@ function getFileLabel(asset: ContentAsset) {
 }
 
 function isLocalUploadUrl(url: string) {
-    return (
-        url.startsWith("http://localhost:8000/") ||
-        url.startsWith("http://127.0.0.1:8000/")
-    );
+  return (
+    url.startsWith("http://localhost:8000/") ||
+    url.startsWith("http://127.0.0.1:8000/")
+  );
 }
 
 function ResponsiveImage({

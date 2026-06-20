@@ -45,6 +45,22 @@ type ApiRequestOptions = {
   isFormData?: boolean;
 };
 
+type ReadSessionRead = {
+  id: string;
+  content_id: string;
+  user_id: string;
+  started_at: string;
+  last_active_at: string;
+  ended_at: string | null;
+  active_seconds: number;
+  max_scroll_percent: number;
+  tab_visible: boolean;
+  is_completed: boolean;
+  is_qualified: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
 export class ApiError extends Error {
   status: number;
   detail: string;
@@ -676,6 +692,7 @@ export const api = {
       likes: number;
       bookmarks: number;
       comments: number;
+      views: number;
     }>(`/content/${contentId}/counts`);
   },
 
@@ -852,4 +869,43 @@ export const api = {
       isFormData: true,
     });
   },
+
+  startReadSession(contentId: string) {
+    return apiRequest<ReadSessionRead>("/read-sessions/start", {
+      method: "POST",
+      auth: true,
+      body: { content_id: contentId },
+    });
+  },
+
+  heartbeatReadSession(
+    sessionId: string,
+    payload: {
+      active_seconds_delta?: number;
+      scroll_percent?: number;
+      tab_visible?: boolean;
+    } = {},
+  ) {
+    return apiRequest<ReadSessionRead>(`/read-sessions/${sessionId}/heartbeat`, {
+      method: "PATCH",
+      auth: true,
+      body: payload,
+    });
+  },
+
+  finishReadSession(
+    sessionId: string,
+    payload: {
+      active_seconds_delta?: number;
+      scroll_percent?: number;
+      tab_visible?: boolean;
+    } = {},
+  ) {
+    return apiRequest<ReadSessionRead>(`/read-sessions/${sessionId}/finish`, {
+      method: "POST",
+      auth: true,
+      body: payload,
+    });
+  },
+
 };
