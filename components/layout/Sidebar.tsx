@@ -19,6 +19,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { getStoredUser } from "@/lib/auth";
+import type { User } from "@/lib/types";
 import { canModerate, canPublish, isAdmin } from "@/lib/roles";
 
 type NavItem = {
@@ -128,9 +129,24 @@ export default function Sidebar() {
     return () => cancelAnimationFrame(rafId);
   }, []);
 
-  const user = useMemo(() => {
-    if (!mounted) return null;
-    return getStoredUser();
+  const [user, setUser] = useState<User | null>(() => null);
+
+  useEffect(() => {
+    if (!mounted) return;
+
+    const update = () => setUser(getStoredUser());
+
+    // set initial user
+    update();
+
+    // listen for storage events (other tabs) and in-tab auth changes
+    window.addEventListener("storage", update);
+    window.addEventListener("sle_auth_changed", update as EventListener);
+
+    return () => {
+      window.removeEventListener("storage", update);
+      window.removeEventListener("sle_auth_changed", update as EventListener);
+    };
   }, [mounted]);
 
   const canShowWorkspace = mounted && !!user;

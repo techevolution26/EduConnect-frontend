@@ -1,4 +1,4 @@
-import { getAccessToken } from "@/lib/auth";
+import { getAccessToken, clearAuthSession } from "@/lib/auth";
 import type {
   AdminDashboardStats,
   AdminUser,
@@ -130,6 +130,13 @@ async function apiRequest<T>(
 
   if (!response.ok) {
     let detail = "Something went wrong.";
+
+    // If server says unauthorized, clear local session so UI updates
+    if (response.status === 401) {
+      try {
+        clearAuthSession();
+      } catch {}
+    }
 
     try {
       const data = await response.json();

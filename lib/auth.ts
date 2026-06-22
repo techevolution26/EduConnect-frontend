@@ -8,6 +8,10 @@ export function saveAuthSession(session: TokenResponse) {
 
   localStorage.setItem(TOKEN_KEY, session.access_token);
   localStorage.setItem(USER_KEY, JSON.stringify(session.user));
+  try {
+    // notify other listeners in this window/tab that auth changed
+    window.dispatchEvent(new CustomEvent("sle_auth_changed"));
+  } catch {}
 }
 
 export function getAccessToken() {
@@ -35,4 +39,8 @@ export function clearAuthSession() {
 
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(USER_KEY);
+  try {
+    // notify other listeners in this window/tab that auth changed
+    window.dispatchEvent(new CustomEvent("sle_auth_changed"));
+  } catch {}
 }
