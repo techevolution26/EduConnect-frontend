@@ -11,15 +11,15 @@ import {
   ShieldCheck,
   UserCircle,
   Users,
-  X,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 
-import { getStoredUser } from "@/lib/auth";
-import type { User } from "@/lib/types";
+import { MobileSheet } from "@/components/layout/MobileSheet";
+import { SIDEBAR_WIDTH_CLASS } from "@/components/layout/layoutConstants";
+import { useAuthSession } from "@/hooks/useAuthSession";
 import { canModerate, canPublish, isAdmin } from "@/lib/roles";
 
 type NavItem = {
@@ -44,17 +44,15 @@ function isActivePath(pathname: string, href: string) {
 function NavLink({
   item,
   active,
-  compact = false,
   iconOnly = false,
 }: {
   item: NavItem;
   active: boolean;
-  compact?: boolean;
   iconOnly?: boolean;
 }) {
   const Icon = item.icon;
 
-  if (compact || iconOnly) {
+  if (iconOnly) {
     return (
       <Link
         href={item.href}
@@ -78,10 +76,11 @@ function NavLink({
   return (
     <Link
       href={item.href}
-      className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-sm transition ${active
-        ? "bg-white text-black"
-        : "text-white/65 hover:bg-white/10 hover:text-white"
-        }`}
+      className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-sm transition ${
+        active
+          ? "bg-white text-black"
+          : "text-white/65 hover:bg-white/10 hover:text-white"
+      }`}
     >
       <Icon className="h-4 w-4 shrink-0" />
       <span className="truncate">{item.label}</span>
@@ -121,48 +120,23 @@ function NavSection({
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const [mounted, setMounted] = useState(false);
   const [mobileMoreOpen, setMobileMoreOpen] = useState(false);
+  const { user, isReady } = useAuthSession();
 
-  useEffect(() => {
-    const rafId = requestAnimationFrame(() => setMounted(true));
-    return () => cancelAnimationFrame(rafId);
-  }, []);
-
-  const [user, setUser] = useState<User | null>(() => null);
-
-  useEffect(() => {
-    if (!mounted) return;
-
-    const update = () => setUser(getStoredUser());
-
-    // set initial user
-    update();
-
-    // listen for storage events (other tabs) and in-tab auth changes
-    window.addEventListener("storage", update);
-    window.addEventListener("sle_auth_changed", update as EventListener);
-
-    return () => {
-      window.removeEventListener("storage", update);
-      window.removeEventListener("sle_auth_changed", update as EventListener);
-    };
-  }, [mounted]);
-
-  const canShowWorkspace = mounted && !!user;
+  const canShowWorkspace = isReady && !!user;
 
   const workspaceItems: NavItem[] = canShowWorkspace
     ? [
-      ...(canPublish(user)
-        ? [{ href: "/writer/dashboard", label: "Writer Studio", icon: PenLine }]
-        : []),
-      ...(canModerate(user)
-        ? [{ href: "/admin/review", label: "Review Queue", icon: ShieldCheck }]
-        : []),
-      ...(isAdmin(user)
-        ? [{ href: "/admin/dashboard", label: "Admin Dashboard", icon: Gauge }]
-        : []),
-    ]
+        ...(canPublish(user)
+          ? [{ href: "/writer/dashboard", label: "Writer Studio", icon: PenLine }]
+          : []),
+        ...(canModerate(user)
+          ? [{ href: "/admin/review", label: "Review Queue", icon: ShieldCheck }]
+          : []),
+        ...(isAdmin(user)
+          ? [{ href: "/admin/dashboard", label: "Admin Dashboard", icon: Gauge }]
+          : []),
+      ]
     : [];
 
   const mobilePrimaryItems: NavItem[] = [
@@ -174,8 +148,7 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* Desktop sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 border-r border-white/10 bg-[#09090b]/95 p-3 backdrop-blur md:flex md:flex-col xl:w-72 xl:p-4">
+      <aside className={`fixed inset-y-0 left-0 z-40 hidden ${SIDEBAR_WIDTH_CLASS} border-r border-white/10 bg-[#09090b]/95 p-3 backdrop-blur md:flex md:flex-col xl:p-4`}>
         <Link
           href="/feed"
           className="shrink-0 rounded-3xl bg-white/[0.04] p-4 xl:p-5"
@@ -189,7 +162,7 @@ export default function Sidebar() {
           </h1>
 
           <p className="mt-2 truncate text-xs text-white/40">
-            {mounted && user ? `${user.role} · ${user.full_name}` : "\u00A0"}
+            {isReady && user ? `${user.role} · ${user.full_name}` : "\u00A0"}
           </p>
         </Link>
 
@@ -209,7 +182,6 @@ export default function Sidebar() {
         </div>
       </aside>
 
-      {/* Mobile bottom nav */}
       <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-[#09090b]/95 px-3 py-3 backdrop-blur md:hidden">
         <div className="flex items-center justify-between gap-2">
           {mobilePrimaryItems.map((item) => (
@@ -217,7 +189,6 @@ export default function Sidebar() {
               key={item.href}
               item={item}
               active={isActivePath(pathname, item.href)}
-              compact
               iconOnly
             />
           ))}
@@ -236,106 +207,83 @@ export default function Sidebar() {
         </div>
       </nav>
 
-      {/* Mobile more drawer */}
-      {mobileMoreOpen ? (
-        <>
-          <button
-            type="button"
-            aria-label="Close mobile menu backdrop"
-            onClick={() => setMobileMoreOpen(false)}
-            className="fixed inset-0 z-40 bg-black/45 md:hidden"
-          />
-
-          <div className="fixed inset-x-0 bottom-[76px] z-50 mx-3 overflow-hidden rounded-3xl border border-white/10 bg-[#09090b]/95 shadow-2xl backdrop-blur-xl md:hidden">
-            <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
-              <div>
-                <p className="text-sm font-semibold text-white">More</p>
-                <p className="text-xs text-white/45">Workspace and account</p>
+      <MobileSheet
+        open={mobileMoreOpen}
+        onClose={() => setMobileMoreOpen(false)}
+        title="More"
+        description="Workspace and account"
+      >
+        {user ? (
+          <>
+            <div className="mb-3 flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 text-sm font-semibold text-white">
+                {user.full_name?.charAt(0)?.toUpperCase() ?? "U"}
               </div>
 
-              <button
-                type="button"
-                onClick={() => setMobileMoreOpen(false)}
-                className="rounded-xl p-2 text-white/60 transition hover:bg-white/10 hover:text-white"
-                aria-label="Close menu"
-              >
-                <X className="h-4 w-4" />
-              </button>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium text-white">
+                  {user.full_name}
+                </p>
+                <p className="text-xs text-white/45">{user.role}</p>
+              </div>
             </div>
 
-            <div className="max-h-[60vh] overflow-y-auto p-3">
-              {user ? (
-                <>
-                  <div className="mb-3 flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-3">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 text-sm font-semibold text-white">
-                      {user.full_name?.charAt(0)?.toUpperCase() ?? "U"}
-                    </div>
+            <div className="space-y-2">
+              {workspaceItems.map((item) => {
+                const Icon = item.icon;
+                const active = isActivePath(pathname, item.href);
 
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-medium text-white">
-                        {user.full_name}
-                      </p>
-                      <p className="text-xs text-white/45">{user.role}</p>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    {workspaceItems.map((item) => {
-                      const Icon = item.icon;
-                      const active = isActivePath(pathname, item.href);
-
-                      return (
-                        <Link
-                          key={item.href}
-                          href={item.href}
-                          onClick={() => setMobileMoreOpen(false)}
-                          className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-sm transition ${active
-                            ? "bg-white text-black"
-                            : "text-white/75 hover:bg-white/10 hover:text-white"
-                            }`}
-                        >
-                          <Icon className="h-4 w-4 shrink-0" />
-                          <span className="truncate">{item.label}</span>
-                        </Link>
-                      );
-                    })}
-
-                    <Link
-                      href="/profile"
-                      onClick={() => setMobileMoreOpen(false)}
-                      className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-sm transition ${isActivePath(pathname, "/profile")
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setMobileMoreOpen(false)}
+                    className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-sm transition ${
+                      active
                         ? "bg-white text-black"
                         : "text-white/75 hover:bg-white/10 hover:text-white"
-                        }`}
-                    >
-                      <UserCircle className="h-4 w-4 shrink-0" />
-                      <span className="truncate">Profile</span>
-                    </Link>
-                  </div>
-                </>
-              ) : (
-                <div className="space-y-3">
-                  <Link
-                    href="/login"
-                    onClick={() => setMobileMoreOpen(false)}
-                    className="block rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-center text-white transition hover:bg-white/10"
+                    }`}
                   >
-                    Login
+                    <Icon className="h-4 w-4 shrink-0" />
+                    <span className="truncate">{item.label}</span>
                   </Link>
+                );
+              })}
 
-                  <Link
-                    href="/register"
-                    onClick={() => setMobileMoreOpen(false)}
-                    className="block rounded-2xl bg-white px-4 py-3 text-center font-semibold text-black transition hover:bg-white/90"
-                  >
-                    Create account
-                  </Link>
-                </div>
-              )}
+              <Link
+                href="/profile"
+                onClick={() => setMobileMoreOpen(false)}
+                className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-sm transition ${
+                  isActivePath(pathname, "/profile")
+                    ? "bg-white text-black"
+                    : "text-white/75 hover:bg-white/10 hover:text-white"
+                }`}
+              >
+                <UserCircle className="h-4 w-4 shrink-0" />
+                <span className="truncate">Profile</span>
+              </Link>
             </div>
+          </>
+        ) : (
+          <div className="space-y-3">
+            <Link
+              href="/login"
+              onClick={() => setMobileMoreOpen(false)}
+              className="block rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-center text-white transition hover:bg-white/10"
+            >
+              Login
+            </Link>
+
+            <Link
+              href="/register"
+              onClick={() => setMobileMoreOpen(false)}
+              className="block rounded-2xl bg-white px-4 py-3 text-center font-semibold text-black transition hover:bg-white/90"
+            >
+              Create account
+            </Link>
           </div>
-        </>
-      ) : null}
+        )}
+      </MobileSheet>
     </>
   );
 }

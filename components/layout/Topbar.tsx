@@ -11,29 +11,19 @@ import {
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useMemo, useRef, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { api } from "@/lib/api";
-import { clearAuthSession, getAccessToken } from "@/lib/auth";
+import { MobileSheet } from "@/components/layout/MobileSheet";
+import { useAuthSession } from "@/hooks/useAuthSession";
 
 export default function Topbar() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const queryClient = useQueryClient();
-
-  const token = getAccessToken();
   const initialQuery = searchParams.get("q") ?? "";
 
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  const { data: user } = useQuery({
-    queryKey: ["auth", "me"],
-    queryFn: api.me,
-    enabled: Boolean(token),
-    retry: false,
-  });
+  const { user, logout } = useAuthSession();
 
   const isSearchPage = pathname.startsWith("/search");
 
@@ -54,9 +44,8 @@ export default function Topbar() {
     return name ? name.charAt(0).toUpperCase() : "U";
   }, [user?.full_name]);
 
-  function logout() {
-    clearAuthSession();
-    queryClient.clear();
+  function handleLogout() {
+    logout();
     setMobileMenuOpen(false);
     router.push("/login");
   }
@@ -78,7 +67,6 @@ export default function Topbar() {
   return (
     <header className="sticky top-0 z-40 border-b border-white/10 bg-[#09090b]/90 backdrop-blur">
       <div className="relative px-4 py-3 lg:px-8">
-        {/* Desktop row */}
         <div className="hidden items-center gap-4 md:flex">
           <form
             onSubmit={handleSearch}
@@ -134,7 +122,7 @@ export default function Topbar() {
                 </Link>
 
                 <button
-                  onClick={logout}
+                  onClick={handleLogout}
                   className="rounded-2xl border border-white/10 bg-white/5 p-3 text-white/70 transition hover:bg-white/10 hover:text-white"
                   type="button"
                   aria-label="Logout"
@@ -162,7 +150,6 @@ export default function Topbar() {
           </div>
         </div>
 
-        {/* Mobile layout */}
         <div className="flex items-center justify-between gap-3 md:hidden">
           <div className="min-w-0">
             <p className="truncate text-lg font-bold text-white">EduConnect</p>
@@ -203,111 +190,78 @@ export default function Topbar() {
             </button>
           </div>
         </div>
+      </div>
 
-        {/* Mobile slide-down menu */}
-        <div
-          className={[
-            "absolute left-0 right-0 top-full z-50 overflow-hidden border-b border-white/10 bg-[#09090b]/95 shadow-2xl backdrop-blur-xl transition-all duration-300 md:hidden",
-            mobileMenuOpen
-              ? "max-h-[520px] translate-y-0 opacity-100"
-              : "pointer-events-none max-h-0 -translate-y-2 opacity-0",
-          ].join(" ")}
-        >
-          <div className="p-4">
-            <div className="mb-4 flex items-center justify-between">
-              <div>
-                <p className="text-sm font-semibold text-white">Account</p>
-                <p className="text-xs text-white/45">
-                  Quick access and profile actions
-                </p>
+      <MobileSheet
+        open={mobileMenuOpen}
+        onClose={() => setMobileMenuOpen(false)}
+        title="Account"
+        description="Quick access and profile actions"
+      >
+        {user ? (
+          <>
+            <div className="mb-4 flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/10 text-base font-semibold text-white">
+                {userInitial}
               </div>
+
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium text-white">
+                  {user.full_name}
+                </p>
+                <p className="text-xs text-white/45">{user.role}</p>
+              </div>
+            </div>
+
+            <nav className="space-y-2">
+              <Link
+                href="/profile"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-3 rounded-2xl px-4 py-3 text-white/80 transition hover:bg-white/10 hover:text-white"
+              >
+                <User className="h-5 w-5" />
+                <span>Profile</span>
+              </Link>
+
+              <Link
+                href="/notifications"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-3 rounded-2xl px-4 py-3 text-white/80 transition hover:bg-white/10 hover:text-white"
+              >
+                <Bell className="h-5 w-5" />
+                <span>Notifications</span>
+              </Link>
 
               <button
                 type="button"
-                onClick={() => setMobileMenuOpen(false)}
-                className="rounded-xl p-2 text-white/60 transition hover:bg-white/10 hover:text-white"
-                aria-label="Close menu"
+                onClick={handleLogout}
+                className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-red-400 transition hover:bg-red-500/10"
               >
-                <X className="h-4 w-4" />
+                <LogOut className="h-5 w-5" />
+                <span>Logout</span>
               </button>
-            </div>
+            </nav>
+          </>
+        ) : (
+          <div className="space-y-3">
+            <Link
+              href="/login"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-center text-white transition hover:bg-white/10"
+            >
+              Login
+            </Link>
 
-            {user ? (
-              <>
-                <div className="mb-4 flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-3">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/10 text-base font-semibold text-white">
-                    {userInitial}
-                  </div>
-
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-white">
-                      {user.full_name}
-                    </p>
-                    <p className="text-xs text-white/45">{user.role}</p>
-                  </div>
-                </div>
-
-                <nav className="space-y-2">
-                  <Link
-                    href="/profile"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-3 rounded-2xl px-4 py-3 text-white/80 transition hover:bg-white/10 hover:text-white"
-                  >
-                    <User className="h-5 w-5" />
-                    <span>Profile</span>
-                  </Link>
-
-                  <Link
-                    href="/notifications"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-3 rounded-2xl px-4 py-3 text-white/80 transition hover:bg-white/10 hover:text-white"
-                  >
-                    <Bell className="h-5 w-5" />
-                    <span>Notifications</span>
-                  </Link>
-
-                  <button
-                    type="button"
-                    onClick={logout}
-                    className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-red-400 transition hover:bg-red-500/10"
-                  >
-                    <LogOut className="h-5 w-5" />
-                    <span>Logout</span>
-                  </button>
-                </nav>
-              </>
-            ) : (
-              <div className="space-y-3">
-                <Link
-                  href="/login"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-center text-white transition hover:bg-white/10"
-                >
-                  Login
-                </Link>
-
-                <Link
-                  href="/register"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block rounded-2xl bg-white px-4 py-3 text-center font-semibold text-black transition hover:bg-white/90"
-                >
-                  Create account
-                </Link>
-              </div>
-            )}
+            <Link
+              href="/register"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block rounded-2xl bg-white px-4 py-3 text-center font-semibold text-black transition hover:bg-white/90"
+            >
+              Create account
+            </Link>
           </div>
-        </div>
-      </div>
-
-      {/* Backdrop */}
-      {mobileMenuOpen ? (
-        <button
-          type="button"
-          aria-label="Close menu backdrop"
-          onClick={() => setMobileMenuOpen(false)}
-          className="fixed inset-0 z-30 bg-black/40 md:hidden"
-        />
-      ) : null}
+        )}
+      </MobileSheet>
     </header>
   );
 }

@@ -135,7 +135,7 @@ async function apiRequest<T>(
     if (response.status === 401) {
       try {
         clearAuthSession();
-      } catch {}
+      } catch { }
     }
 
     try {
@@ -650,12 +650,13 @@ export const api = {
 
   startPartnership(payload: {
     plan: PartnershipPlan;
+    phone_number: string;
     referral_creator_id?: string | null;
   }) {
-    return apiRequest<Partnership>("/partnerships/start", {
+    return apiRequest("/partnerships/start", {
       method: "POST",
-      body: payload,
       auth: true,
+      body: payload,
     });
   },
 

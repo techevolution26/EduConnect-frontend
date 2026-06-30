@@ -308,6 +308,8 @@ export type PartnershipPlanRead = {
   label: string;
   description: string;
   recommended_for: string;
+  price_kes: number | null;
+  duration_days: number | null;
 };
 
 export type PartnershipAccess = {

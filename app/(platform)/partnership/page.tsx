@@ -1,10 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import {
   CheckCircle2,
-  Clock,
   HeartHandshake,
   Lock,
   Sparkles,
@@ -16,6 +15,8 @@ import { api, ApiError } from "@/lib/api";
 import { clearAuthSession, getAccessToken } from "@/lib/auth";
 import type { PartnershipPlan } from "@/lib/types";
 
+// ─── Static plan metadata ────────────────────────────────────────────────────
+
 const planOrder: PartnershipPlan[] = [
   "FREE",
   "MONTHLY_PARTNER",
@@ -26,9 +27,9 @@ const planOrder: PartnershipPlan[] = [
 
 const planHighlights: Record<PartnershipPlan, string[]> = {
   FREE: [
-    "Explore public content",
+    "Read public content",
     "Join the reading community",
-    "Limited-time starter access",
+    "Browse without payment",
   ],
   MONTHLY_PARTNER: [
     "Unlock partner-only content",
@@ -52,29 +53,15 @@ const planHighlights: Record<PartnershipPlan, string[]> = {
   ],
 };
 
-function planTone(plan: PartnershipPlan) {
-  if (plan === "ANNUAL_PARTNER") {
-    return "border-emerald-400/30 bg-emerald-400/10";
-  }
-
-  if (plan === "MONTHLY_PARTNER") {
-    return "border-amber-400/30 bg-amber-400/10";
-  }
-
+function planCardStyle(plan: PartnershipPlan) {
+  if (plan === "ANNUAL_PARTNER") return "border-emerald-400/30 bg-emerald-400/10";
+  if (plan === "MONTHLY_PARTNER") return "border-amber-400/30 bg-amber-400/10";
   return "border-white/10 bg-white/[0.04]";
 }
 
-function planButtonLabel(plan: PartnershipPlan) {
-  if (plan === "FREE") return "Start free access";
-  if (plan === "MONTHLY_PARTNER") return "Start monthly partnership";
-  if (plan === "ANNUAL_PARTNER") return "Start annual partnership";
-  if (plan === "STUDENT_PARTNER") return "Start student partnership";
-  return "Start teacher partnership";
-}
+// ─── Component ───────────────────────────────────────────────────────────────
 
 export default function PartnershipPage() {
-  const queryClient = useQueryClient();
-
   const [mounted, setMounted] = useState(false);
   const [hasSessionToken, setHasSessionToken] = useState(false);
 
@@ -83,7 +70,6 @@ export default function PartnershipPage() {
       setMounted(true);
       setHasSessionToken(Boolean(getAccessToken()));
     }, 0);
-
     return () => window.clearTimeout(timeout);
   }, []);
 
@@ -101,9 +87,9 @@ export default function PartnershipPage() {
     retry: false,
   });
 
+  // Clear stale session on 401
   useEffect(() => {
     if (!myPartnershipQuery.error) return;
-
     const timeout = window.setTimeout(() => {
       if (
         myPartnershipQuery.error instanceof ApiError &&
@@ -113,180 +99,95 @@ export default function PartnershipPage() {
         setHasSessionToken(false);
       }
     }, 0);
-
     return () => window.clearTimeout(timeout);
   }, [myPartnershipQuery.error]);
-
-  const startMutation = useMutation({
-    mutationFn: (plan: PartnershipPlan) =>
-      api.startPartnership({
-        plan,
-        referral_creator_id: null,
-      }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["partnerships", "me"] });
-    },
-  });
-
-  const cancelMutation = useMutation({
-    mutationFn: api.cancelPartnership,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["partnerships", "me"] });
-    },
-  });
 
   const plans = [...(plansQuery.data ?? [])].sort(
     (a, b) => planOrder.indexOf(a.plan) - planOrder.indexOf(b.plan),
   );
 
   const activePlan = myPartnershipQuery.data?.active_plan ?? null;
-  const hasActivePartnership =
-    myPartnershipQuery.data?.has_active_partnership ?? false;
+  const hasActivePartnership = myPartnershipQuery.data?.has_active_partnership ?? false;
+  const hasPaidPartnership = hasActivePartnership && activePlan !== "FREE";
+  const hasPublicAccess = activePlan === "FREE";
 
-  const shouldShowPartnershipError =
-    isAuthenticated &&
-    myPartnershipQuery.isError &&
-    !(myPartnershipQuery.error instanceof ApiError &&
-      myPartnershipQuery.error.status === 401);
+  // ── Hero status copy ────────────────────────────────────────────────────
 
-  const actionError =
-    startMutation.error instanceof ApiError
-      ? startMutation.error.detail
-      : cancelMutation.error instanceof ApiError
-        ? cancelMutation.error.detail
-        : "Partnership action failed.";
-
-  const heroStatusLabel = hasActivePartnership
+  const heroStatusLabel = hasPaidPartnership
     ? "Active partnership"
-    : isAuthenticated
-      ? "No active partnership"
-      : "Guest access";
+    : hasPublicAccess
+      ? "Public access"
+      : isAuthenticated
+        ? "No active partnership"
+        : "Guest access";
 
-  const heroStatusDetail = isAuthenticated
-    ? activePlan ?? "Start a plan to unlock partner-only content."
-    : "Browse plans now, then sign in to activate one.";
+  const heroStatusDetail = hasPaidPartnership
+    ? activePlan ?? "Your plan is active."
+    : hasPublicAccess
+      ? "You can browse public content. Choose a paid plan to unlock partner-only content."
+      : isAuthenticated
+        ? "Choose a paid plan to unlock partner-only content and support creators."
+        : "Browse plans now, then sign in to activate one.";
+
+  // ── Render ──────────────────────────────────────────────────────────────
 
   return (
     <div className="space-y-6 pb-10">
+      {/* Hero */}
       <section className="overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.04] p-5 shadow-2xl sm:p-6 lg:p-8">
         <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
           <div>
             <p className="text-xs uppercase tracking-[0.28em] text-white/40">
               Partnership
             </p>
-
             <h1 className="mt-3 text-3xl font-semibold tracking-tight text-white sm:text-4xl">
               Support stories, education, and community.
             </h1>
-
             <p className="mt-4 max-w-2xl text-sm leading-6 text-white/60">
               Partnership unlocks premium content while helping writers,
-              teachers, students, children’s learning, and African storytelling
+              teachers, students, children&rsquo;s learning, and African storytelling
               grow in one connected ecosystem.
             </p>
-
-            {!isAuthenticated ? (
-              <div className="mt-5 flex flex-wrap gap-3">
-                <Link
-                  href="/login"
-                  className="rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-black transition hover:bg-white/90"
-                >
-                  Login
-                </Link>
-                <Link
-                  href="/register"
-                  className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/75 transition hover:bg-white/10"
-                >
-                  Create account
-                </Link>
-              </div>
-            ) : null}
           </div>
 
           <div className="rounded-[2rem] border border-white/10 bg-black/20 p-5">
             <div className="flex items-center gap-3">
-              {hasActivePartnership ? (
+              {hasPaidPartnership ? (
                 <CheckCircle2 className="h-5 w-5 text-emerald-300" />
               ) : (
                 <Lock className="h-5 w-5 text-white/50" />
               )}
-
               <div className="min-w-0">
                 <p className="text-sm font-semibold text-white">
                   {heroStatusLabel}
                 </p>
-                <p className="mt-1 text-xs text-white/45">
-                  {heroStatusDetail}
-                </p>
+                <p className="mt-1 text-xs text-white/45">{heroStatusDetail}</p>
               </div>
             </div>
-
-            {isAuthenticated && myPartnershipQuery.data?.expires_at ? (
-              <p className="mt-4 text-xs text-white/45">
-                Expires:{" "}
-                {new Date(myPartnershipQuery.data.expires_at).toLocaleDateString()}
-              </p>
-            ) : null}
-
-            {isAuthenticated && hasActivePartnership ? (
-              <button
-                type="button"
-                onClick={() => cancelMutation.mutate()}
-                disabled={cancelMutation.isPending}
-                className="mt-5 w-full rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-100 disabled:opacity-60"
-              >
-                {cancelMutation.isPending ? "Cancelling..." : "Cancel partnership"}
-              </button>
-            ) : null}
           </div>
         </div>
       </section>
 
-      {plansQuery.isLoading || (isAuthenticated && myPartnershipQuery.isLoading) ? (
+      {/* Loading */}
+      {plansQuery.isLoading ||
+        (isAuthenticated && myPartnershipQuery.isLoading) ? (
         <LoadingState label="Loading partnership plans..." />
       ) : null}
 
-      {shouldShowPartnershipError ? (
-        <div className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-          Could not load partnership information.
-        </div>
-      ) : null}
-
-      {startMutation.isError || cancelMutation.isError ? (
-        <div className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-          {actionError}
-        </div>
-      ) : null}
-
-      {startMutation.isSuccess ? (
-        <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
-          Partnership request started. Free plans activate immediately; paid
-          plans remain pending until payment activation is connected.
-        </div>
-      ) : null}
-
-      {!isAuthenticated ? (
-        <section className="rounded-[2rem] border border-amber-500/30 bg-amber-500/10 p-5">
-          <h2 className="text-lg font-semibold text-amber-100">
-            Guest browsing is enabled
-          </h2>
-          <p className="mt-2 text-sm leading-6 text-amber-100/75">
-            You can explore the plans below. Sign in to activate a plan or manage
-            an existing one.
-          </p>
-        </section>
-      ) : null}
-
+      {/* Plan cards */}
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {plans.map((plan) => {
-          const isActive = activePlan === plan.plan && hasActivePartnership;
-          const isPendingPaid = plan.plan !== "FREE";
+          const isPaidPlan = plan.plan !== "FREE";
+          const isCurrentPlan =
+            activePlan === plan.plan && hasActivePartnership;
+          const isPublicAccessPlan = plan.plan === "FREE";
 
           return (
             <article
               key={plan.plan}
-              className={`rounded-[2rem] border p-5 ${planTone(plan.plan)}`}
+              className={`rounded-[2rem] border p-5 ${planCardStyle(plan.plan)}`}
             >
+              {/* Plan name + price */}
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
                   <p className="text-xs uppercase tracking-[0.2em] text-white/40">
@@ -297,10 +198,20 @@ export default function PartnershipPage() {
                   </h2>
                 </div>
 
-                {plan.plan === "ANNUAL_PARTNER" ? (
-                  <span className="rounded-full bg-emerald-400/20 px-3 py-1 text-xs text-emerald-100">
-                    Best value
-                  </span>
+                {/* Price badge — rendered from API data */}
+                {isPaidPlan && plan.price_kes != null ? (
+                  <div className="shrink-0 text-right">
+                    <span className="text-xl font-bold text-white">
+                      KES {plan.price_kes.toLocaleString()}
+                    </span>
+                    <p className="mt-0.5 text-xs text-white/40">
+                      {plan.duration_days === 365
+                        ? "per year"
+                        : plan.duration_days === 30
+                          ? "per month"
+                          : `for ${plan.duration_days} days`}
+                    </p>
+                  </div>
                 ) : null}
               </div>
 
@@ -308,10 +219,7 @@ export default function PartnershipPage() {
                 {plan.description}
               </p>
 
-              <p className="mt-3 text-xs text-white/45">
-                Recommended for: {plan.recommended_for}
-              </p>
-
+              {/* Highlights */}
               <ul className="mt-5 space-y-3">
                 {planHighlights[plan.plan].map((item) => (
                   <li
@@ -324,68 +232,48 @@ export default function PartnershipPage() {
                 ))}
               </ul>
 
-              {isPendingPaid ? (
-                <div className="mt-5 flex gap-2 rounded-2xl border border-white/10 bg-black/20 p-3 text-xs leading-5 text-white/50">
-                  <Clock className="mt-0.5 h-4 w-4 shrink-0" />
-                  Paid plans currently create a pending partnership until a
-                  payment provider is connected.
-                </div>
-              ) : null}
-
-              {isAuthenticated ? (
-                <button
-                  type="button"
-                  onClick={() => startMutation.mutate(plan.plan)}
-                  disabled={startMutation.isPending || isActive}
-                  className={`mt-6 inline-flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${isActive
-                    ? "border border-emerald-400/30 bg-emerald-400/10 text-emerald-100"
-                    : "bg-white text-black hover:bg-white/90"
-                    }`}
-                >
-                  <HeartHandshake className="h-4 w-4" />
-                  {isActive ? "Current plan" : planButtonLabel(plan.plan)}
-                </button>
-              ) : (
-                <Link
-                  href="/login"
-                  className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-black transition hover:bg-white/90"
-                >
-                  <HeartHandshake className="h-4 w-4" />
-                  Login to start
-                </Link>
-              )}
+              {/* CTA */}
+              <div className="mt-6">
+                {isPublicAccessPlan ? (
+                  /* FREE — no action needed */
+                  <button
+                    type="button"
+                    disabled
+                    title="No payment required for public access"
+                    className="inline-flex w-full cursor-default items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white/60"
+                  >
+                    <HeartHandshake className="h-4 w-4" />
+                    Public access
+                  </button>
+                ) : isCurrentPlan ? (
+                  /* Already on this plan */
+                  <div className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-emerald-400/30 bg-emerald-400/10 px-4 py-3 text-sm font-semibold text-emerald-100">
+                    <CheckCircle2 className="h-4 w-4" />
+                    Current plan
+                  </div>
+                ) : isAuthenticated ? (
+                  /* Authenticated — go to checkout page for this plan */
+                  <Link
+                    href={`/partnership/checkout?plan=${plan.plan}`}
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-black transition hover:bg-white/90"
+                  >
+                    <HeartHandshake className="h-4 w-4" />
+                    Pay with M-Pesa
+                  </Link>
+                ) : (
+                  /* Guest — prompt to log in first */
+                  <Link
+                    href="/login"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-black transition hover:bg-white/90"
+                  >
+                    <HeartHandshake className="h-4 w-4" />
+                    Login to start
+                  </Link>
+                )}
+              </div>
             </article>
           );
         })}
-      </section>
-
-      <section className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-5 sm:p-6">
-        <h2 className="text-2xl font-semibold text-white">
-          How partnership unlocks content
-        </h2>
-
-        <div className="mt-5 grid gap-4 md:grid-cols-3">
-          <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-            <p className="text-sm font-semibold text-white">1. Start partnership</p>
-            <p className="mt-2 text-sm leading-6 text-white/55">
-              Choose Free, Monthly, Annual, Student, or Teacher partnership.
-            </p>
-          </div>
-
-          <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-            <p className="text-sm font-semibold text-white">2. Unlock access</p>
-            <p className="mt-2 text-sm leading-6 text-white/55">
-              Active partners can read partner-only content and premium posts.
-            </p>
-          </div>
-
-          <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-            <p className="text-sm font-semibold text-white">3. Support creators</p>
-            <p className="mt-2 text-sm leading-6 text-white/55">
-              Partnership helps sustain writers, teachers, and community learning spaces.
-            </p>
-          </div>
-        </div>
       </section>
     </div>
   );

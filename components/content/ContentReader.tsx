@@ -2,6 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 import type { ContentDetail } from "@/lib/types";
 
@@ -36,12 +38,12 @@ function formatRelativeTime(dateInput: string | Date): string {
         return `${hours} ${hours === 1 ? "hour" : "hours"} ago`;
     }
 
-    if (days < 21) {
+    if (days < 7) {
         return `${days} ${days === 1 ? "day" : "days"} ago`;
     }
 
-    if (weeks >= 3 && weeks <= 6) {
-        return `${weeks} weeks ago`;
+    if (weeks < 5) {
+        return `${weeks} ${weeks === 1 ? "week" : "weeks"} ago`;
     }
 
     if (date.getFullYear() === now.getFullYear()) {
@@ -61,10 +63,10 @@ function getFileLabel(asset: ContentAsset) {
 }
 
 function isLocalUploadUrl(url: string) {
-  return (
-    url.startsWith("http://localhost:8000/") ||
-    url.startsWith("http://127.0.0.1:8000/")
-  );
+    return (
+        url.startsWith("http://localhost:8000/") ||
+        url.startsWith("http://127.0.0.1:8000/")
+    );
 }
 
 function ResponsiveImage({
@@ -127,7 +129,10 @@ export default function ContentReader({ content }: { content: ContentDetail }) {
         : imageAssets;
 
     return (
-        <article className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 shadow-2xl sm:p-8">
+        <article
+            className="min-w-0 overflow-x-hidden break-words rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 shadow-2xl sm:p-8"
+            style={{ overflowWrap: "anywhere", wordBreak: "break-word" }}
+        >
             <div className="flex flex-wrap items-center gap-2 text-xs uppercase tracking-[0.22em] text-white/45">
                 <span>{content.content_type}</span>
                 <span>•</span>
@@ -141,7 +146,7 @@ export default function ContentReader({ content }: { content: ContentDetail }) {
             </div>
 
             {coverImage ? (
-                <div className="mt-6 overflow-hidden rounded-[2rem] border border-white/10 bg-black/20">
+                <div className="mt-6">
                     <ResponsiveImage
                         src={coverImage}
                         alt={content.title}
@@ -194,17 +199,10 @@ export default function ContentReader({ content }: { content: ContentDetail }) {
                 </section>
             ) : (
                 <>
-                    <section className="prose prose-invert mt-8 max-w-none">
-                        {content.body.split("\n").map((paragraph, index) => {
-                            const trimmed = paragraph.trim();
-                            if (!trimmed) return <div key={index} className="h-4" />;
-
-                            return (
-                                <p key={index} className="text-lg leading-9 text-white/75">
-                                    {trimmed}
-                                </p>
-                            );
-                        })}
+                    <section className="prose prose-invert mt-8 max-w-none overflow-x-hidden">
+                        <div className="min-w-0 break-words [overflow-wrap:anywhere] [word-break:break-word]">
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{content.body}</ReactMarkdown>
+                        </div>
                     </section>
 
                     {galleryImages.length > 0 ? (
