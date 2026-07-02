@@ -28,7 +28,10 @@ export type ContentType =
   | "WOMEN"
   | "FITNESS"
   | "SELF_AWARENESS"
-  | "PARENTING";
+  | "PARENTING"
+  | "TECHNOLOGY"
+  | "SCIENCE"
+  | "CARS";
 
 export type ContentStatus =
   | "DRAFT"

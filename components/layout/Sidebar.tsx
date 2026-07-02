@@ -158,7 +158,7 @@ export default function Sidebar() {
           </p>
 
           <h1 className="mt-2 truncate text-lg font-semibold tracking-tight text-white xl:text-xl">
-            EduConnect
+            GateWays
           </h1>
 
           <p className="mt-2 truncate text-xs text-white/40">

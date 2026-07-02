@@ -14,7 +14,6 @@ import {
   useCallback,
   useEffect,
   useMemo,
-  useRef,
   useState,
   type ComponentType,
 } from "react";
@@ -62,6 +61,9 @@ const contentTypeFilters: Array<{ label: string; value: ContentType | "" }> = [
   { label: "Fitness", value: "FITNESS" },
   { label: "Self awareness", value: "SELF_AWARENESS" },
   { label: "Parenting", value: "PARENTING" },
+  { label: "Technology", value: "TECHNOLOGY" },
+  { label: "Science", value: "SCIENCE" },
+  { label: "Cars", value: "CARS" },
 ];
 
 // ─── Utilities ────────────────────────────────────────────────────────────────
