@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
     ArrowLeft,
@@ -67,7 +67,7 @@ const planHighlights: Record<PartnershipPlan, string[]> = {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function CheckoutPage() {
+function CheckoutPageContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const planParam = searchParams.get("plan") as PartnershipPlan | null;
@@ -168,8 +168,6 @@ export default function CheckoutPage() {
             </div>
         );
     }
-
-    // ── Main checkout ────────────────────────────────────────────────────────
 
     return (
         <div className="mx-auto max-w-lg space-y-6 pb-10">
@@ -306,5 +304,13 @@ export default function CheckoutPage() {
                 </p>
             </section>
         </div>
+    );
+}
+
+export default function CheckoutPage() {
+    return (
+        <Suspense fallback={<LoadingState label="Preparing checkout..." />}>
+            <CheckoutPageContent />
+        </Suspense>
     );
 }
