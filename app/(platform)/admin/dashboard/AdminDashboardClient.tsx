@@ -38,10 +38,10 @@ function StatCard({
     helper?: string;
 }) {
     return (
-        <div className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-5">
-            <p className="text-sm text-white/45">{label}</p>
-            <p className="mt-2 text-3xl font-semibold text-white">{value}</p>
-            {helper ? <p className="mt-2 text-sm text-white/50">{helper}</p> : null}
+        <div className="rounded-[2rem] border border-border bg-surface p-5">
+            <p className="text-sm text-fg-dim">{label}</p>
+            <p className="mt-2 text-3xl font-semibold text-fg">{value}</p>
+            {helper ? <p className="mt-2 text-sm text-fg-dim">{helper}</p> : null}
         </div>
     );
 }
@@ -60,11 +60,11 @@ function AdminActionCard({
     return (
         <Link
             href={href}
-            className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-5 transition hover:-translate-y-0.5 hover:bg-white/[0.07]"
+            className="rounded-[2rem] border border-border bg-surface p-5 transition hover:-translate-y-0.5 hover:bg-surface-2"
         >
-            <Icon className="h-5 w-5 text-white/45" />
-            <h3 className="mt-4 text-lg font-semibold text-white">{title}</h3>
-            <p className="mt-2 text-sm leading-6 text-white/55">{description}</p>
+            <Icon className="h-5 w-5 text-fg-dim" />
+            <h3 className="font-display mt-4 text-lg font-semibold text-fg">{title}</h3>
+            <p className="mt-2 text-sm leading-6 text-fg-dim">{description}</p>
         </Link>
     );
 }
@@ -150,16 +150,16 @@ export default function AdminDashboardClient() {
     return (
         <RoleGuard allowedRoles={["ADMIN"]}>
             <div className="space-y-8">
-                <section className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 shadow-2xl">
-                    <p className="text-xs uppercase tracking-[0.28em] text-white/40">
+                <section className="rounded-[2rem] border border-border bg-surface p-6 shadow-2xl">
+                    <p className="text-xs uppercase tracking-[0.28em] text-fg-dim">
                         Admin Dashboard
                     </p>
 
-                    <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
+                    <h1 className="font-display mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
                         Platform control center
                     </h1>
 
-                    <p className="mt-4 max-w-2xl text-sm leading-6 text-white/60">
+                    <p className="mt-4 max-w-2xl text-sm leading-6 text-fg-dim">
                         Manage users, roles, moderation status, publishing health,
                         partnerships, categories, and hubs from one place.
                     </p>
@@ -167,14 +167,14 @@ export default function AdminDashboardClient() {
                     <div className="mt-6 flex flex-wrap gap-3">
                         <Link
                             href="/admin/review"
-                            className="rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-black"
+                            className="rounded-2xl bg-accent px-4 py-3 text-sm font-semibold text-on-accent"
                         >
                             Open review queue
                         </Link>
 
                         <Link
                             href="/admin/content"
-                            className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/75 hover:bg-white/10"
+                            className="rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-fg-dim hover:bg-surface-2"
                         >
                             Manage content
                         </Link>
@@ -185,13 +185,13 @@ export default function AdminDashboardClient() {
                     <LoadingState label="Loading dashboard stats..." />
                 ) : null}
 
-                <section className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-5 sm:p-6">
+                <section className="rounded-[2rem] border border-border bg-surface p-5 sm:p-6">
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                         <div>
-                            <p className="text-xs uppercase tracking-[0.24em] text-white/40">
+                            <p className="text-xs uppercase tracking-[0.24em] text-fg-dim">
                                 Admin command center
                             </p>
-                            <h2 className="mt-2 text-2xl font-semibold">Platform management</h2>
+                            <h2 className="font-display mt-2 text-2xl font-semibold">Platform management</h2>
                         </div>
                     </div>
 
@@ -281,17 +281,17 @@ export default function AdminDashboardClient() {
                             <StatCard label="Hubs" value={dashboardQuery.data.total_hubs} />
                         </section>
 
-                        <section className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-5">
-                            <h2 className="text-xl font-semibold">Users by role</h2>
+                        <section className="rounded-[2rem] border border-border bg-surface p-5">
+                            <h2 className="font-display text-xl font-semibold">Users by role</h2>
 
                             <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                                 {roleCounts.map((item) => (
                                     <div
                                         key={item.label}
-                                        className="rounded-2xl border border-white/10 bg-black/20 p-4"
+                                        className="rounded-2xl border border-border bg-surface-2 p-4"
                                     >
-                                        <p className="text-sm text-white/45">{item.label}</p>
-                                        <p className="mt-2 text-2xl font-semibold text-white">
+                                        <p className="text-sm text-fg-dim">{item.label}</p>
+                                        <p className="mt-2 text-2xl font-semibold text-fg">
                                             {item.value}
                                         </p>
                                     </div>
@@ -301,14 +301,14 @@ export default function AdminDashboardClient() {
                     </>
                 ) : null}
 
-                <section className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-5">
+                <section className="rounded-[2rem] border border-border bg-surface p-5">
                     <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                         <div>
-                            <p className="text-xs uppercase tracking-[0.24em] text-white/40">
+                            <p className="text-xs uppercase tracking-[0.24em] text-fg-dim">
                                 Role management
                             </p>
-                            <h2 className="mt-2 text-2xl font-semibold">Users</h2>
-                            <p className="mt-2 text-sm text-white/55">
+                            <h2 className="font-display mt-2 text-2xl font-semibold">Users</h2>
+                            <p className="mt-2 text-sm text-fg-dim">
                                 Upgrade writers, assign teachers, create moderators, or suspend
                                 unsafe accounts.
                             </p>
@@ -319,7 +319,7 @@ export default function AdminDashboardClient() {
                                 value={search}
                                 onChange={(event) => setSearch(event.target.value)}
                                 placeholder="Search user..."
-                                className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-white/30"
+                                className="rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-fg outline-none focus:border-accent/40"
                             />
 
                             <select
@@ -327,7 +327,7 @@ export default function AdminDashboardClient() {
                                 onChange={(event) =>
                                     setRoleFilter(event.target.value as UserRole | "")
                                 }
-                                className="rounded-2xl border border-white/10 bg-[#111113] px-4 py-3 text-sm text-white outline-none focus:border-white/30"
+                                className="rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-fg outline-none focus:border-accent/40"
                             >
                                 <option value="">All roles</option>
                                 {roleOptions.map((role) => (
@@ -346,13 +346,13 @@ export default function AdminDashboardClient() {
                     ) : null}
 
                     {updateRoleMutation.isError || updateStatusMutation.isError ? (
-                        <p className="mt-5 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                        <p className="mt-5 rounded-2xl border border-danger/30 bg-danger-soft px-4 py-3 text-sm text-danger">
                             {mutationError}
                         </p>
                     ) : null}
 
-                    <div className="mt-6 overflow-hidden rounded-2xl border border-white/10">
-                        <div className="hidden grid-cols-[1.5fr_1fr_1fr_1fr_auto] gap-4 border-b border-white/10 bg-white/5 px-4 py-3 text-xs uppercase tracking-[0.18em] text-white/40 md:grid">
+                    <div className="mt-6 overflow-hidden rounded-2xl border border-border">
+                        <div className="hidden grid-cols-[1.5fr_1fr_1fr_1fr_auto] gap-4 border-b border-border bg-surface px-4 py-3 text-xs uppercase tracking-[0.18em] text-fg-dim md:grid">
                             <span>User</span>
                             <span>Role</span>
                             <span>Verified</span>
@@ -367,10 +367,10 @@ export default function AdminDashboardClient() {
                                     className="grid gap-4 px-4 py-4 md:grid-cols-[1.5fr_1fr_1fr_1fr_auto] md:items-center"
                                 >
                                     <div>
-                                        <p className="font-medium text-white">{user.full_name}</p>
-                                        <p className="mt-1 text-xs text-white/45">{user.email}</p>
+                                        <p className="font-medium text-fg">{user.full_name}</p>
+                                        <p className="mt-1 text-xs text-fg-dim">{user.email}</p>
                                         {user.username ? (
-                                            <p className="mt-1 text-xs text-white/35">@{user.username}</p>
+                                            <p className="mt-1 text-xs text-fg-dim">@{user.username}</p>
                                         ) : null}
                                     </div>
 
@@ -383,7 +383,7 @@ export default function AdminDashboardClient() {
                                                 isVerified: user.is_verified,
                                             })
                                         }
-                                        className="rounded-2xl border border-white/10 bg-[#111113] px-3 py-2 text-sm text-white outline-none"
+                                        className="rounded-2xl border border-border bg-surface px-3 py-2 text-sm text-fg outline-none"
                                     >
                                         {roleOptions.map((role) => (
                                             <option key={role} value={role}>
@@ -401,7 +401,7 @@ export default function AdminDashboardClient() {
                                                 isVerified: event.target.value === "true",
                                             })
                                         }
-                                        className="rounded-2xl border border-white/10 bg-[#111113] px-3 py-2 text-sm text-white outline-none"
+                                        className="rounded-2xl border border-border bg-surface px-3 py-2 text-sm text-fg outline-none"
                                     >
                                         <option value="true">Verified</option>
                                         <option value="false">Not verified</option>
@@ -409,8 +409,8 @@ export default function AdminDashboardClient() {
 
                                     <span
                                         className={`w-fit rounded-full px-3 py-1 text-xs ${user.is_active
-                                            ? "bg-emerald-500/10 text-emerald-200"
-                                            : "bg-red-500/10 text-red-200"
+                                            ? "bg-success-soft text-success"
+                                            : "bg-danger-soft text-danger"
                                             }`}
                                     >
                                         {user.is_active ? "Active" : "Suspended"}
@@ -425,8 +425,8 @@ export default function AdminDashboardClient() {
                                             })
                                         }
                                         className={`rounded-2xl px-4 py-2 text-sm font-semibold ${user.is_active
-                                            ? "border border-red-500/30 bg-red-500/10 text-red-100"
-                                            : "border border-emerald-500/30 bg-emerald-500/10 text-emerald-100"
+                                            ? "border border-danger/30 bg-danger-soft text-danger"
+                                            : "border border-success/30 bg-success-soft text-success"
                                             }`}
                                     >
                                         {user.is_active ? "Suspend" : "Activate"}
@@ -437,7 +437,7 @@ export default function AdminDashboardClient() {
                     </div>
 
                     {usersQuery.data && usersQuery.data.items.length === 0 ? (
-                        <p className="mt-5 text-sm text-white/50">No users found.</p>
+                        <p className="mt-5 text-sm text-fg-dim">No users found.</p>
                     ) : null}
                 </section>
             </div>

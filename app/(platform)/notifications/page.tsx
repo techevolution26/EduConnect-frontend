@@ -32,33 +32,36 @@ export default function NotificationsPage() {
 
     return (
         <div className="space-y-8">
-            <section className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 shadow-2xl">
-                <p className="text-xs uppercase tracking-[0.28em] text-white/40">
-                    Notifications
-                </p>
+            <section className="overflow-hidden rounded-[2rem] border border-border bg-surface shadow-2xl">
+                <div className="kanga" />
+                <div className="p-6">
+                    <p className="text-xs uppercase tracking-[0.28em] text-accent-text">
+                        Notifications
+                    </p>
 
-                <h1 className="mt-3 text-3xl font-semibold tracking-tight">
-                    Activity updates
-                </h1>
+                    <h1 className="font-display mt-3 text-3xl tracking-tight text-fg">
+                        Activity updates
+                    </h1>
 
-                <p className="mt-4 max-w-2xl text-sm leading-6 text-white/60">
-                    Track approvals, rejections, comments, follows, partnerships, and
-                    system messages.
-                </p>
+                    <p className="mt-4 max-w-2xl text-sm leading-6 text-fg-dim">
+                        Track approvals, rejections, comments, follows, partnerships, and
+                        system messages.
+                    </p>
 
-                <div className="mt-6 flex flex-wrap items-center gap-3">
-                    <span className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/70">
-                        {notificationsQuery.data?.unread_count ?? 0} unread
-                    </span>
+                    <div className="mt-6 flex flex-wrap items-center gap-3">
+                        <span className="rounded-2xl border border-border bg-surface px-4 py-2 text-sm text-fg-dim">
+                            {notificationsQuery.data?.unread_count ?? 0} unread
+                        </span>
 
-                    <button
-                        type="button"
-                        onClick={() => markAllMutation.mutate()}
-                        disabled={markAllMutation.isPending}
-                        className="rounded-2xl bg-white px-4 py-2 text-sm font-semibold text-black disabled:opacity-60"
-                    >
-                        Mark all as read
-                    </button>
+                        <button
+                            type="button"
+                            onClick={() => markAllMutation.mutate()}
+                            disabled={markAllMutation.isPending}
+                            className="rounded-2xl bg-accent px-4 py-2 text-sm font-semibold text-on-accent disabled:opacity-60"
+                        >
+                            Mark all as read
+                        </button>
+                    </div>
                 </div>
             </section>
 
@@ -67,7 +70,7 @@ export default function NotificationsPage() {
             ) : null}
 
             {notificationsQuery.isError ? (
-                <div className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                <div className="rounded-2xl border border-danger/30 bg-danger-soft px-4 py-3 text-sm text-danger">
                     Could not load notifications.
                 </div>
             ) : null}
@@ -78,27 +81,27 @@ export default function NotificationsPage() {
                         <article
                             key={notification.id}
                             className={`rounded-[2rem] border p-5 ${notification.is_read
-                                    ? "border-white/10 bg-white/[0.03]"
-                                    : "border-amber-400/30 bg-amber-400/10"
+                                ? "border-border bg-surface"
+                                : "border-accent/30 bg-accent-soft"
                                 }`}
                         >
                             <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                                 <div>
-                                    <p className="text-xs uppercase tracking-[0.2em] text-white/40">
+                                    <p className="text-xs uppercase tracking-[0.2em] text-fg-dim">
                                         {notification.notification_type}
                                     </p>
 
-                                    <h2 className="mt-2 text-lg font-semibold">
+                                    <h2 className="font-display mt-2 text-lg font-semibold">
                                         {notification.title}
                                     </h2>
 
                                     {notification.body ? (
-                                        <p className="mt-2 text-sm leading-6 text-white/60">
+                                        <p className="mt-2 text-sm leading-6 text-fg-dim">
                                             {notification.body}
                                         </p>
                                     ) : null}
 
-                                    <p className="mt-3 text-xs text-white/35">
+                                    <p className="mt-3 text-xs text-fg-dim">
                                         {new Date(notification.created_at).toLocaleString()}
                                     </p>
                                 </div>
@@ -107,7 +110,7 @@ export default function NotificationsPage() {
                                     <button
                                         type="button"
                                         onClick={() => markOneMutation.mutate(notification.id)}
-                                        className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/75 hover:bg-white/10"
+                                        className="rounded-2xl border border-border bg-surface px-4 py-2 text-sm text-fg-dim hover:bg-surface-2"
                                     >
                                         Mark read
                                     </button>

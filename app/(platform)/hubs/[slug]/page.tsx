@@ -31,20 +31,23 @@ export default function HubDetailPage() {
             {hubQuery.isLoading ? <LoadingState label="Loading hub..." /> : null}
 
             {hubQuery.data ? (
-                <section className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 shadow-2xl">
-                    <p className="text-xs uppercase tracking-[0.28em] text-white/40">
-                        Community hub
-                    </p>
-
-                    <h1 className="mt-3 text-3xl font-semibold tracking-tight">
-                        {hubQuery.data.name}
-                    </h1>
-
-                    {hubQuery.data.description ? (
-                        <p className="mt-4 max-w-2xl text-sm leading-6 text-white/60">
-                            {hubQuery.data.description}
+                <section className="overflow-hidden rounded-[2rem] border border-border bg-surface shadow-2xl">
+                    <div className="kanga" />
+                    <div className="p-6">
+                        <p className="text-xs uppercase tracking-[0.28em] text-accent">
+                            Community hub
                         </p>
-                    ) : null}
+
+                        <h1 className="font-display mt-3 text-3xl tracking-tight text-fg">
+                            {hubQuery.data.name}
+                        </h1>
+
+                        {hubQuery.data.description ? (
+                            <p className="mt-4 max-w-2xl text-sm leading-6 text-fg-dim">
+                                {hubQuery.data.description}
+                            </p>
+                        ) : null}
+                    </div>
                 </section>
             ) : null}
 

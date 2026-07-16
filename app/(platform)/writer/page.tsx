@@ -15,16 +15,16 @@ export default function WritersPage() {
 
     return (
         <div className="space-y-8">
-            <section className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 shadow-2xl">
-                <p className="text-xs uppercase tracking-[0.28em] text-white/40">
+            <section className="rounded-[2rem] border border-border bg-surface p-6 shadow-2xl">
+                <p className="text-xs uppercase tracking-[0.28em] text-fg-dim">
                     Writers
                 </p>
 
-                <h1 className="mt-3 text-3xl font-semibold tracking-tight">
+                <h1 className="font-display mt-3 text-3xl font-semibold tracking-tight">
                     Discover creators
                 </h1>
 
-                <p className="mt-4 max-w-2xl text-sm leading-6 text-white/60">
+                <p className="mt-4 max-w-2xl text-sm leading-6 text-fg-dim">
                     Follow writers, teachers, faith voices, poets, and storytellers.
                 </p>
             </section>
@@ -32,7 +32,7 @@ export default function WritersPage() {
             {isLoading ? <LoadingState label="Loading writers..." /> : null}
 
             {isError ? (
-                <div className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                <div className="rounded-2xl border border-danger/30 bg-danger-soft px-4 py-3 text-sm text-danger">
                     Could not load writers.
                 </div>
             ) : null}
@@ -43,23 +43,23 @@ export default function WritersPage() {
                         <Link
                             key={writer.id}
                             href={`/writers/${writer.id}`}
-                            className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-5 transition hover:-translate-y-0.5 hover:bg-white/[0.07]"
+                            className="rounded-[2rem] border border-border bg-surface p-5 transition hover:-translate-y-0.5 hover:bg-surface-2"
                         >
-                            <p className="text-xs uppercase tracking-[0.2em] text-white/40">
+                            <p className="text-xs uppercase tracking-[0.2em] text-fg-dim">
                                 {writer.role}
                             </p>
 
-                            <h2 className="mt-3 text-xl font-semibold">
+                            <h2 className="font-display mt-3 text-xl font-semibold">
                                 {writer.full_name}
                             </h2>
 
                             {writer.bio ? (
-                                <p className="mt-3 line-clamp-3 text-sm leading-6 text-white/60">
+                                <p className="mt-3 line-clamp-3 text-sm leading-6 text-fg-dim">
                                     {writer.bio}
                                 </p>
                             ) : null}
 
-                            <div className="mt-5 flex gap-3 text-xs text-white/40">
+                            <div className="mt-5 flex gap-3 text-xs text-fg-dim">
                                 <span>{writer.followers_count} followers</span>
                                 <span>{writer.published_count} posts</span>
                             </div>

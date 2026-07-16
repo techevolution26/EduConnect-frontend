@@ -53,16 +53,18 @@ export default function ProfileSecurityPage() {
 
     return (
         <div className="mx-auto max-w-5xl space-y-8">
-            <section className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 shadow-2xl">
-                <p className="text-xs uppercase tracking-[0.28em] text-white/40">
+            <section className="overflow-hidden rounded-[2rem] border border-border bg-surface shadow-2xl">
+                <div className="kanga" />
+                <div className="p-6">
+                <p className="text-xs uppercase tracking-[0.28em] text-accent-text">
                     Account Security
                 </p>
 
-                <h1 className="mt-3 text-3xl font-semibold tracking-tight">
+                <h1 className="font-display mt-3 text-3xl tracking-tight text-fg">
                     Password and account protection
                 </h1>
 
-                <p className="mt-4 max-w-2xl text-sm leading-6 text-white/60">
+                <p className="mt-4 max-w-2xl text-sm leading-6 text-fg-dim">
                     Keep your account secure. This affects access to publishing,
                     moderation, learning resources, and saved content.
                 </p>
@@ -70,73 +72,74 @@ export default function ProfileSecurityPage() {
                 <div className="mt-6">
                     <Link
                         href="/profile"
-                        className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/75 transition hover:bg-white/10"
+                        className="rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-fg-dim transition hover:bg-surface-2"
                     >
                         Back to profile
                     </Link>
+                </div>
                 </div>
             </section>
 
             <section className="grid gap-6 lg:grid-cols-[1fr_360px]">
                 <form
                     onSubmit={handleSubmit}
-                    className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-6"
+                    className="rounded-[2rem] border border-border bg-surface p-6"
                 >
-                    <h2 className="text-xl font-semibold">Change password</h2>
+                    <h2 className="font-display text-xl font-semibold">Change password</h2>
 
                     <div className="mt-5 grid gap-5">
                         <div>
-                            <label className="text-sm text-white/70">Current password</label>
+                            <label className="text-sm text-fg-dim">Current password</label>
                             <input
                                 type="password"
                                 value={currentPassword}
                                 onChange={(event) => setCurrentPassword(event.target.value)}
-                                className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-white/30"
+                                className="mt-2 w-full rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-fg outline-none focus:border-accent/40"
                                 required
                             />
                         </div>
 
                         <div>
-                            <label className="text-sm text-white/70">New password</label>
+                            <label className="text-sm text-fg-dim">New password</label>
                             <input
                                 type="password"
                                 value={newPassword}
                                 onChange={(event) => setNewPassword(event.target.value)}
-                                className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-white/30"
+                                className="mt-2 w-full rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-fg outline-none focus:border-accent/40"
                                 minLength={8}
                                 required
                             />
-                            <p className="mt-2 text-xs text-white/35">
+                            <p className="mt-2 text-xs text-fg-dim">
                                 Use at least 8 characters. Later we can enforce stronger rules.
                             </p>
                         </div>
 
                         <div>
-                            <label className="text-sm text-white/70">Confirm new password</label>
+                            <label className="text-sm text-fg-dim">Confirm new password</label>
                             <input
                                 type="password"
                                 value={confirmPassword}
                                 onChange={(event) => setConfirmPassword(event.target.value)}
-                                className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-white/30"
+                                className="mt-2 w-full rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-fg outline-none focus:border-accent/40"
                                 minLength={8}
                                 required
                             />
 
                             {passwordsDoNotMatch ? (
-                                <p className="mt-2 text-xs text-red-200">
+                                <p className="mt-2 text-xs text-danger">
                                     Passwords do not match.
                                 </p>
                             ) : null}
                         </div>
 
                         {mutation.isError ? (
-                            <p className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                            <p className="rounded-2xl border border-danger/30 bg-danger-soft px-4 py-3 text-sm text-danger">
                                 {errorMessage}
                             </p>
                         ) : null}
 
                         {mutation.isSuccess ? (
-                            <p className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+                            <p className="rounded-2xl border border-success/30 bg-success-soft px-4 py-3 text-sm text-success">
                                 Password updated successfully.
                             </p>
                         ) : null}
@@ -150,35 +153,35 @@ export default function ProfileSecurityPage() {
                                 !newPassword ||
                                 !confirmPassword
                             }
-                            className="w-fit rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-black transition hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-50"
+                            className="w-fit rounded-2xl bg-accent px-4 py-3 text-sm font-semibold text-on-accent transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             {mutation.isPending ? "Updating..." : "Update password"}
                         </button>
                     </div>
                 </form>
 
-                <aside className="h-fit rounded-[2rem] border border-white/10 bg-white/[0.04] p-5">
-                    <p className="text-xs uppercase tracking-[0.24em] text-white/40">
+                <aside className="h-fit rounded-[2rem] border border-border bg-surface p-5">
+                    <p className="text-xs uppercase tracking-[0.24em] text-fg-dim">
                         Account status
                     </p>
 
                     <div className="mt-5 space-y-4">
-                        <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                            <p className="text-sm text-white/45">Role</p>
+                        <div className="rounded-2xl border border-border bg-surface-2 p-4">
+                            <p className="text-sm text-fg-dim">Role</p>
                             <p className="mt-2 text-lg font-semibold">
                                 {meQuery.data?.role ?? "Unknown"}
                             </p>
                         </div>
 
-                        <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                            <p className="text-sm text-white/45">Verification</p>
+                        <div className="rounded-2xl border border-border bg-surface-2 p-4">
+                            <p className="text-sm text-fg-dim">Verification</p>
                             <p className="mt-2 text-lg font-semibold">
                                 {meQuery.data?.is_verified ? "Verified" : "Not verified"}
                             </p>
                         </div>
 
-                        <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                            <p className="text-sm text-white/45">Account</p>
+                        <div className="rounded-2xl border border-border bg-surface-2 p-4">
+                            <p className="text-sm text-fg-dim">Account</p>
                             <p className="mt-2 text-lg font-semibold">
                                 {meQuery.data?.is_active ? "Active" : "Suspended"}
                             </p>

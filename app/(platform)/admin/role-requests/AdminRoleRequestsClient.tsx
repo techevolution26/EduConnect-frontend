@@ -65,34 +65,34 @@ export default function AdminRoleRequestsClient() {
     return (
         <RoleGuard allowedRoles={["ADMIN"]}>
             <div className="space-y-8">
-                <section className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 shadow-2xl">
-                    <p className="text-xs uppercase tracking-[0.28em] text-white/40">
+                <section className="rounded-[2rem] border border-border bg-surface p-6 shadow-2xl">
+                    <p className="text-xs uppercase tracking-[0.28em] text-fg-dim">
                         Admin Role Requests
                     </p>
 
-                    <h1 className="mt-3 text-3xl font-semibold tracking-tight">
+                    <h1 className="font-display mt-3 text-3xl font-semibold tracking-tight">
                         Review account role requests
                     </h1>
 
-                    <p className="mt-4 max-w-2xl text-sm leading-6 text-white/60">
+                    <p className="mt-4 max-w-2xl text-sm leading-6 text-fg-dim">
                         Approve writers, teachers, students, and parents after reviewing
                         their stated purpose.
                     </p>
                 </section>
 
-                <section className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-5">
-                    <label className="text-sm text-white/70">Status filter</label>
+                <section className="rounded-[2rem] border border-border bg-surface p-5">
+                    <label className="text-sm text-fg-dim">Status filter</label>
 
                     <select
                         value={statusFilter}
                         onChange={(event) =>
                             setStatusFilter(event.target.value as RoleRequestStatus | "")
                         }
-                        className="mt-2 w-full max-w-xs rounded-2xl border border-white/10 bg-[#111113] px-4 py-3 text-sm text-white outline-none focus:border-white/30"
+                        className="mt-2 w-full max-w-xs rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-fg outline-none focus:border-accent/40"
                     >
                         {statusOptions.map((status) => (
                             <option
-                                className="bg-[#111113] text-white"
+                                className="bg-surface text-fg"
                                 key={status || "ALL"}
                                 value={status}
                             >
@@ -107,13 +107,13 @@ export default function AdminRoleRequestsClient() {
                 ) : null}
 
                 {requestsQuery.isError ? (
-                    <div className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                    <div className="rounded-2xl border border-danger/30 bg-danger-soft px-4 py-3 text-sm text-danger">
                         Could not load role requests.
                     </div>
                 ) : null}
 
                 {approveMutation.isError || rejectMutation.isError ? (
-                    <div className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                    <div className="rounded-2xl border border-danger/30 bg-danger-soft px-4 py-3 text-sm text-danger">
                         {error}
                     </div>
                 ) : null}
@@ -123,41 +123,41 @@ export default function AdminRoleRequestsClient() {
                         {items.map((request) => (
                             <article
                                 key={request.id}
-                                className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-5"
+                                className="rounded-[2rem] border border-border bg-surface p-5"
                             >
                                 <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                                     <div>
-                                        <p className="text-xs uppercase tracking-[0.2em] text-white/40">
+                                        <p className="text-xs uppercase tracking-[0.2em] text-fg-dim">
                                             {request.user?.email ?? "Unknown user"}
                                         </p>
 
-                                        <h2 className="mt-2 text-2xl font-semibold">
+                                        <h2 className="font-display mt-2 text-2xl font-semibold">
                                             {request.requested_role}
                                         </h2>
 
-                                        <p className="mt-2 text-sm text-white/45">
+                                        <p className="mt-2 text-sm text-fg-dim">
                                             Requested by {request.user?.full_name ?? request.user_id}
                                         </p>
                                     </div>
 
                                     <span
                                         className={`w-fit rounded-full px-3 py-1 text-xs ${request.status === "APPROVED"
-                                            ? "bg-emerald-500/10 text-emerald-200"
+                                            ? "bg-success-soft text-success"
                                             : request.status === "REJECTED"
-                                                ? "bg-red-500/10 text-red-200"
-                                                : "bg-amber-500/10 text-amber-200"
+                                                ? "bg-danger-soft text-danger"
+                                                : "bg-accent-soft text-accent"
                                             }`}
                                     >
                                         {request.status}
                                     </span>
                                 </div>
 
-                                <p className="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4 text-sm leading-6 text-white/65">
+                                <p className="mt-4 rounded-2xl border border-border bg-surface-2 p-4 text-sm leading-6 text-fg-dim">
                                     {request.reason}
                                 </p>
 
                                 {request.admin_note ? (
-                                    <p className="mt-3 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm leading-6 text-white/55">
+                                    <p className="mt-3 rounded-2xl border border-border bg-surface p-4 text-sm leading-6 text-fg-dim">
                                         Admin note: {request.admin_note}
                                     </p>
                                 ) : null}
@@ -173,7 +173,7 @@ export default function AdminRoleRequestsClient() {
                                                 }))
                                             }
                                             placeholder="Optional admin note..."
-                                            className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-white/30"
+                                            className="rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-fg outline-none focus:border-accent/40"
                                         />
 
                                         <button
@@ -187,7 +187,7 @@ export default function AdminRoleRequestsClient() {
                                                 })
                                             }
                                             disabled={rejectMutation.isPending}
-                                            className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-100 disabled:opacity-60"
+                                            className="rounded-2xl border border-danger/30 bg-danger-soft px-4 py-3 text-sm font-semibold text-danger disabled:opacity-60"
                                         >
                                             Reject
                                         </button>
@@ -202,7 +202,7 @@ export default function AdminRoleRequestsClient() {
                                                 })
                                             }
                                             disabled={approveMutation.isPending}
-                                            className="rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-black disabled:opacity-60"
+                                            className="rounded-2xl bg-accent px-4 py-3 text-sm font-semibold text-on-accent disabled:opacity-60"
                                         >
                                             Approve
                                         </button>

@@ -9,7 +9,7 @@ type Props = {
 
 export default function MarkdownPreview({ content }: Props) {
   return (
-    <div className="prose prose-invert max-w-none prose-headings:text-white prose-p:text-white/75 prose-strong:text-white prose-code:text-amber-300">
+    <div className="markdown-body max-w-none">
       <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
     </div>
   );

@@ -172,58 +172,58 @@ function ProfileForm({ user }: { user: User }) {
     return (
         <form
             onSubmit={handleSubmit}
-            className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-5 sm:p-6"
+            className="rounded-[2rem] border border-border bg-surface p-5 sm:p-6"
         >
             <div className="flex flex-col gap-5">
                 <div>
-                    <label className="text-sm text-white/70">Full name</label>
+                    <label className="text-sm text-fg-dim">Full name</label>
                     <input
                         value={fullName}
                         onChange={(event) => setFullName(event.target.value)}
-                        className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-white/30"
+                        className="mt-2 w-full rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-fg outline-none focus:border-accent/40"
                         required
                     />
                 </div>
 
                 <div>
-                    <label className="text-sm text-white/70">Username</label>
+                    <label className="text-sm text-fg-dim">Username</label>
                     <input
                         value={username}
                         onChange={(event) => setUsername(event.target.value)}
-                        className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-white/30"
+                        className="mt-2 w-full rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-fg outline-none focus:border-accent/40"
                         placeholder="yourname"
                     />
                 </div>
 
                 <div>
-                    <label className="text-sm text-white/70">Bio</label>
+                    <label className="text-sm text-fg-dim">Bio</label>
                     <textarea
                         value={bio}
                         onChange={(event) => setBio(event.target.value)}
                         rows={5}
-                        className="mt-2 w-full resize-none rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm leading-6 text-white outline-none focus:border-white/30"
+                        className="mt-2 w-full resize-none rounded-2xl border border-border bg-surface px-4 py-3 text-sm leading-6 text-fg outline-none focus:border-accent/40"
                         placeholder="Tell readers, writers, teachers, or students who you are..."
                     />
                 </div>
 
                 <div>
-                    <label className="text-sm text-white/70">Avatar URL</label>
+                    <label className="text-sm text-fg-dim">Avatar URL</label>
                     <input
                         value={avatarUrl}
                         onChange={(event) => setAvatarUrl(event.target.value)}
-                        className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-white/30"
+                        className="mt-2 w-full rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-fg outline-none focus:border-accent/40"
                         placeholder="https://..."
                     />
                 </div>
 
                 {mutation.isError ? (
-                    <p className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                    <p className="rounded-2xl border border-danger/30 bg-danger-soft px-4 py-3 text-sm text-danger">
                         {errorMessage}
                     </p>
                 ) : null}
 
                 {mutation.isSuccess ? (
-                    <p className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+                    <p className="rounded-2xl border border-success/30 bg-success-soft px-4 py-3 text-sm text-success">
                         Profile updated.
                     </p>
                 ) : null}
@@ -231,7 +231,7 @@ function ProfileForm({ user }: { user: User }) {
                 <button
                     type="submit"
                     disabled={mutation.isPending}
-                    className="w-fit rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-black transition hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="w-fit rounded-2xl bg-accent px-4 py-3 text-sm font-semibold text-on-accent transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                     {mutation.isPending ? "Saving..." : "Save profile"}
                 </button>
@@ -257,7 +257,7 @@ export default function ProfilePage() {
 
     if (isError || !user) {
         return (
-            <div className="rounded-[2rem] border border-red-500/30 bg-red-500/10 p-6 text-red-100">
+            <div className="rounded-[2rem] border border-danger/30 bg-danger-soft p-6 text-danger">
                 Could not load your profile.
             </div>
         );
@@ -265,31 +265,31 @@ export default function ProfilePage() {
 
     return (
         <div className="mx-auto max-w-6xl space-y-8">
-            <section className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-5 shadow-2xl sm:p-6">
+            <section className="rounded-[2rem] border border-border bg-surface p-5 shadow-2xl sm:p-6">
                 <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
                     <div className="flex min-w-0 flex-col gap-5 sm:flex-row">
-                        <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-[2rem] bg-white/10 text-3xl font-semibold text-white">
+                        <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-[2rem] bg-surface-2 text-3xl font-semibold text-fg">
                             {user.full_name.charAt(0).toUpperCase()}
                         </div>
 
                         <div className="min-w-0">
-                            <p className="text-xs uppercase tracking-[0.28em] text-white/40">
+                            <p className="text-xs uppercase tracking-[0.28em] text-fg-dim">
                                 Profile
                             </p>
 
-                            <h1 className="mt-3 break-words text-3xl font-semibold tracking-tight sm:text-4xl">
+                            <h1 className="font-display mt-3 break-words text-3xl font-semibold tracking-tight sm:text-4xl">
                                 {user.full_name}
                             </h1>
 
                             <div className="mt-3 flex flex-wrap items-center gap-2">
-                                <span className="rounded-full bg-white/10 px-3 py-1 text-xs text-white/70">
+                                <span className="rounded-full bg-surface-2 px-3 py-1 text-xs text-fg-dim">
                                     {user.role}
                                 </span>
 
                                 <span
                                     className={`rounded-full px-3 py-1 text-xs ${user.is_verified
-                                        ? "bg-emerald-500/10 text-emerald-200"
-                                        : "bg-amber-500/10 text-amber-200"
+                                        ? "bg-success-soft text-success"
+                                        : "bg-accent-soft text-accent-text"
                                         }`}
                                 >
                                     {user.is_verified ? "Verified" : "Not verified"}
@@ -297,36 +297,36 @@ export default function ProfilePage() {
 
                                 <span
                                     className={`rounded-full px-3 py-1 text-xs ${user.is_active
-                                        ? "bg-emerald-500/10 text-emerald-200"
-                                        : "bg-red-500/10 text-red-200"
+                                        ? "bg-success-soft text-success"
+                                        : "bg-danger-soft text-danger"
                                         }`}
                                 >
                                     {user.is_active ? "Active" : "Suspended"}
                                 </span>
                             </div>
 
-                            <p className="mt-4 max-w-2xl text-sm leading-6 text-white/60">
+                            <p className="mt-4 max-w-2xl text-sm leading-6 text-fg-dim">
                                 {getRoleDescription(user.role)}
                             </p>
                         </div>
                     </div>
 
-                    <div className="rounded-[2rem] border border-white/10 bg-black/20 p-4 lg:min-w-72">
+                    <div className="rounded-[2rem] border border-border bg-surface-2 p-4 lg:min-w-72">
                         <div className="flex items-center gap-3">
-                            <UserCircle className="h-5 w-5 text-white/45" />
+                            <UserCircle className="h-5 w-5 text-fg-dim" />
 
                             <div>
-                                <p className="text-sm font-semibold text-white">
+                                <p className="text-sm font-semibold text-fg">
                                     Account identity
                                 </p>
-                                <p className="mt-1 text-xs text-white/45">{user.email}</p>
+                                <p className="mt-1 text-xs text-fg-dim">{user.email}</p>
                             </div>
                         </div>
 
                         {user.username ? (
-                            <p className="mt-4 text-sm text-white/55">@{user.username}</p>
+                            <p className="mt-4 text-sm text-fg-dim">@{user.username}</p>
                         ) : (
-                            <p className="mt-4 text-sm text-white/35">
+                            <p className="mt-4 text-sm text-fg-dim">
                                 No username configured.
                             </p>
                         )}
@@ -338,58 +338,58 @@ export default function ProfilePage() {
 
             </section>
             {/* security section */}
-            <section className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-5 sm:p-6">
+            <section className="rounded-[2rem] border border-border bg-surface p-5 sm:p-6">
                 <Link
                     href="/profile/security"
-                    className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/75 transition hover:bg-white/10"
+                    className="rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-fg-dim transition hover:bg-surface-2"
                 >
                     Security settings
                 </Link>
 
                 <Link
                     href="/profile/role-request"
-                    className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/75 hover:bg-white/10"
+                    className="rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-fg-dim hover:bg-surface-2"
                 >
                     Request role upgrade
                 </Link>
             </section>
 
             <section className="grid gap-4 md:grid-cols-3">
-                <div className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-5">
-                    <p className="text-sm text-white/45">Current role</p>
-                    <h2 className="mt-2 text-2xl font-semibold">{user.role}</h2>
-                    <p className="mt-2 text-sm leading-6 text-white/55">
+                <div className="rounded-[2rem] border border-border bg-surface p-5">
+                    <p className="text-sm text-fg-dim">Current role</p>
+                    <h2 className="font-display mt-2 text-2xl font-semibold">{user.role}</h2>
+                    <p className="mt-2 text-sm leading-6 text-fg-dim">
                         Controls the tools and dashboards available to you.
                     </p>
                 </div>
 
-                <div className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-5">
-                    <p className="text-sm text-white/45">Verification</p>
-                    <h2 className="mt-2 text-2xl font-semibold">
+                <div className="rounded-[2rem] border border-border bg-surface p-5">
+                    <p className="text-sm text-fg-dim">Verification</p>
+                    <h2 className="font-display mt-2 text-2xl font-semibold">
                         {user.is_verified ? "Verified" : "Pending"}
                     </h2>
-                    <p className="mt-2 text-sm leading-6 text-white/55">
+                    <p className="mt-2 text-sm leading-6 text-fg-dim">
                         Verified profiles are more trusted by readers and learners.
                     </p>
                 </div>
 
-                <div className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-5">
-                    <p className="text-sm text-white/45">Joined</p>
-                    <h2 className="mt-2 text-2xl font-semibold">
+                <div className="rounded-[2rem] border border-border bg-surface p-5">
+                    <p className="text-sm text-fg-dim">Joined</p>
+                    <h2 className="font-display mt-2 text-2xl font-semibold">
                         {new Date(user.created_at).toLocaleDateString()}
                     </h2>
-                    <p className="mt-2 text-sm leading-6 text-white/55">
+                    <p className="mt-2 text-sm leading-6 text-fg-dim">
                         Your account creation date.
                     </p>
                 </div>
             </section>
 
-            <section className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-5 sm:p-6">
-                <p className="text-xs uppercase tracking-[0.24em] text-white/40">
+            <section className="rounded-[2rem] border border-border bg-surface p-5 sm:p-6">
+                <p className="text-xs uppercase tracking-[0.24em] text-fg-dim">
                     Your workspace
                 </p>
 
-                <h2 className="mt-2 text-2xl font-semibold">Recommended actions</h2>
+                <h2 className="font-display mt-2 text-2xl font-semibold">Recommended actions</h2>
 
                 <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                     {roleActions.map((action) => {
@@ -399,10 +399,10 @@ export default function ProfilePage() {
                             <Link
                                 key={action.href}
                                 href={action.href}
-                                className="rounded-2xl border border-white/10 bg-black/20 p-4 transition hover:bg-white/10"
+                                className="rounded-2xl border border-border bg-surface-2 p-4 transition hover:bg-surface-2"
                             >
-                                <Icon className="h-5 w-5 text-white/45" />
-                                <p className="mt-3 text-sm font-semibold text-white">
+                                <Icon className="h-5 w-5 text-fg-dim" />
+                                <p className="mt-3 text-sm font-semibold text-fg">
                                     {action.label}
                                 </p>
                             </Link>
@@ -414,27 +414,27 @@ export default function ProfilePage() {
             <section className="grid gap-6 lg:grid-cols-[1fr_360px]">
                 <ProfileForm key={`${user.id}-${user.updated_at ?? user.created_at}`} user={user} />
 
-                <aside className="h-fit rounded-[2rem] border border-white/10 bg-white/[0.04] p-5">
-                    <p className="text-xs uppercase tracking-[0.24em] text-white/40">
+                <aside className="h-fit rounded-[2rem] border border-border bg-surface p-5">
+                    <p className="text-xs uppercase tracking-[0.24em] text-fg-dim">
                         Public profile preview
                     </p>
 
-                    <div className="mt-5 rounded-[2rem] border border-white/10 bg-black/20 p-5">
-                        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/10 text-2xl font-semibold">
+                    <div className="mt-5 rounded-[2rem] border border-border bg-surface-2 p-5">
+                        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-surface-2 text-2xl font-semibold">
                             {user.full_name.charAt(0).toUpperCase()}
                         </div>
 
-                        <h3 className="mt-4 text-xl font-semibold">{user.full_name}</h3>
+                        <h3 className="font-display mt-4 text-xl font-semibold">{user.full_name}</h3>
 
                         {user.username ? (
-                            <p className="mt-1 text-xs text-white/40">@{user.username}</p>
+                            <p className="mt-1 text-xs text-fg-dim">@{user.username}</p>
                         ) : null}
 
-                        <p className="mt-4 text-sm leading-6 text-white/60">
+                        <p className="mt-4 text-sm leading-6 text-fg-dim">
                             {user.bio || "No bio yet."}
                         </p>
 
-                        <p className="mt-4 rounded-full bg-white/10 px-3 py-1 text-xs text-white/55">
+                        <p className="mt-4 rounded-full bg-surface-2 px-3 py-1 text-xs text-fg-dim">
                             {user.role}
                         </p>
                     </div>

@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* ---------- Light mode (default) ---------- */
 :root {
   --ink: #f7f4ec;
@@ -91,17 +93,134 @@ body {
    boldly per screen (hero, featured card), never as wallpaper. */
 .kanga {
   height: 9px;
-  background: repeating-linear-gradient(-45deg,
-      var(--sig-1) 0 7px,
-      var(--sig-2) 7px 14px,
-      var(--sig-3) 14px 21px);
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--sig-1) 0 7px,
+    var(--sig-2) 7px 14px,
+    var(--sig-3) 14px 21px
+  );
 }
 
 .kanga-thin {
   height: 3px;
   border-radius: 999px;
   opacity: 0.7;
-  background: repeating-linear-gradient(90deg,
-      var(--sig-1) 0 10px,
-      var(--sig-3) 10px 20px);
+  background: repeating-linear-gradient(
+    90deg,
+    var(--sig-1) 0 10px,
+    var(--sig-3) 10px 20px
+  );
+}
+
+/* Hand-written markdown rendering for MarkdownPreview. The
+   @tailwindcss/typography plugin isn't installed in this project, so
+   the previous `prose` classes generated no CSS at all — this
+   replaces them with real, theme-aware styling. */
+.markdown-body {
+  color: var(--fg-dim);
+  line-height: 1.75;
+}
+.markdown-body > :first-child {
+  margin-top: 0;
+}
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4 {
+  font-family: var(--font-fraunces), serif;
+  color: var(--fg);
+  font-weight: 600;
+  line-height: 1.3;
+  margin-top: 1.6em;
+  margin-bottom: 0.6em;
+}
+.markdown-body h1 {
+  font-size: 1.9em;
+}
+.markdown-body h2 {
+  font-size: 1.5em;
+}
+.markdown-body h3 {
+  font-size: 1.25em;
+}
+.markdown-body p {
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+.markdown-body strong {
+  color: var(--fg);
+  font-weight: 600;
+}
+.markdown-body em {
+  font-style: italic;
+}
+.markdown-body a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.markdown-body code {
+  color: var(--accent);
+  background: var(--surface-2);
+  border-radius: 0.375rem;
+  padding: 0.15em 0.4em;
+  font-size: 0.9em;
+}
+.markdown-body pre {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  padding: 1rem;
+  overflow-x: auto;
+  margin-top: 1.2em;
+  margin-bottom: 1.2em;
+}
+.markdown-body pre code {
+  background: transparent;
+  padding: 0;
+}
+.markdown-body ul,
+.markdown-body ol {
+  margin-top: 1em;
+  margin-bottom: 1em;
+  padding-left: 1.4em;
+}
+.markdown-body ul {
+  list-style: disc;
+}
+.markdown-body ol {
+  list-style: decimal;
+}
+.markdown-body li {
+  margin-top: 0.35em;
+}
+.markdown-body blockquote {
+  border-left: 3px solid var(--accent);
+  padding-left: 1em;
+  font-style: italic;
+  color: var(--fg-dim);
+  margin-top: 1.2em;
+  margin-bottom: 1.2em;
+}
+.markdown-body hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin-top: 2em;
+  margin-bottom: 2em;
+}
+.markdown-body table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1.2em;
+  margin-bottom: 1.2em;
+}
+.markdown-body th,
+.markdown-body td {
+  border: 1px solid var(--border);
+  padding: 0.5em 0.75em;
+  text-align: left;
+}
+.markdown-body th {
+  color: var(--fg);
+  font-weight: 600;
 }

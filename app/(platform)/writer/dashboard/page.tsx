@@ -31,13 +31,13 @@ const statusTabs: Array<{ label: string; value: ContentStatus | "" }> = [
 
 function statusClass(status: ContentStatus) {
   const map: Record<ContentStatus, string> = {
-    DRAFT: "border border-slate-500/30 bg-slate-500/10 text-slate-100",
+    DRAFT: "border border-border bg-surface-2 text-fg-dim",
     PENDING_REVIEW:
-      "border border-amber-400/30 bg-amber-400/10 text-amber-100",
+      "border border-accent/30 bg-accent-soft text-accent",
     PUBLISHED:
-      "border border-emerald-400/30 bg-emerald-400/10 text-emerald-100",
-    REJECTED: "border border-rose-400/30 bg-rose-400/10 text-rose-100",
-    ARCHIVED: "border border-zinc-500/30 bg-zinc-500/10 text-zinc-100",
+      "border border-success/30 bg-success-soft text-success",
+    REJECTED: "border border-danger/30 bg-danger-soft text-danger",
+    ARCHIVED: "border border-border bg-surface-2 text-fg-dim",
   };
 
   return map[status];
@@ -55,22 +55,22 @@ function StatCard({
   tone?: "default" | "warm" | "cool" | "green" | "rose";
 }) {
   const toneMap = {
-    default: "border-white/10 bg-white/[0.04]",
-    warm: "border-amber-400/20 bg-amber-400/10",
-    cool: "border-cyan-400/20 bg-cyan-400/10",
-    green: "border-emerald-400/20 bg-emerald-400/10",
-    rose: "border-rose-400/20 bg-rose-400/10",
+    default: "border-border bg-surface",
+    warm: "border-accent/30 bg-accent-soft",
+    cool: "border-info/30 bg-info/10",
+    green: "border-success/30 bg-success-soft",
+    rose: "border-danger/30 bg-danger-soft",
   };
 
   return (
     <div
       className={`rounded-[2rem] border p-5 shadow-[0_20px_60px_rgba(0,0,0,0.18)] ${toneMap[tone]}`}
     >
-      <p className="text-sm text-white/45">{label}</p>
-      <h2 className="mt-2 text-3xl font-semibold tracking-tight text-white">
+      <p className="text-sm text-fg-dim">{label}</p>
+      <h2 className="font-display mt-2 text-3xl font-semibold tracking-tight text-fg">
         {value}
       </h2>
-      {helper ? <p className="mt-2 text-xs leading-5 text-white/40">{helper}</p> : null}
+      {helper ? <p className="mt-2 text-xs leading-5 text-fg-dim">{helper}</p> : null}
     </div>
   );
 }
@@ -89,29 +89,29 @@ function StudioAction({
   accent: "warm" | "cool" | "green" | "rose";
 }) {
   const accentMap = {
-    warm: "from-amber-400/15 via-orange-400/10 to-transparent",
-    cool: "from-cyan-400/15 via-sky-400/10 to-transparent",
-    green: "from-emerald-400/15 via-teal-400/10 to-transparent",
-    rose: "from-rose-400/15 via-fuchsia-400/10 to-transparent",
+    warm: "from-accent/15 via-accent/5 to-transparent",
+    cool: "from-info/15 via-info/5 to-transparent",
+    green: "from-success/15 via-success/5 to-transparent",
+    rose: "from-danger/15 via-danger/5 to-transparent",
   };
 
   return (
     <Link
       href={href}
-      className="group relative overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.04] p-5 transition hover:-translate-y-0.5 hover:bg-white/[0.07]"
+      className="group relative overflow-hidden rounded-[2rem] border border-border bg-surface p-5 transition hover:-translate-y-0.5 hover:bg-surface-2"
     >
       <div
         className={`absolute inset-0 bg-gradient-to-br opacity-70 ${accentMap[accent]}`}
       />
       <div className="relative">
-        <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-black/20 text-white/80">
+        <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-border bg-surface-2 text-fg-dim">
           <Icon className="h-5 w-5" />
         </div>
 
-        <h3 className="mt-4 text-lg font-semibold text-white">{title}</h3>
-        <p className="mt-2 text-sm leading-6 text-white/55">{description}</p>
+        <h3 className="font-display mt-4 text-lg font-semibold text-fg">{title}</h3>
+        <p className="mt-2 text-sm leading-6 text-fg-dim">{description}</p>
 
-        <div className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-white/70 transition group-hover:text-white">
+        <div className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-fg-dim transition group-hover:text-fg">
           Open
           <ChevronRight className="h-4 w-4" />
         </div>
@@ -137,9 +137,9 @@ function ContentRow({
   return (
     <Link
       href={`/writer/content/${content.id}/edit`}
-      className="group relative overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.04] p-5 transition hover:-translate-y-0.5 hover:bg-white/[0.07]"
+      className="group relative overflow-hidden rounded-[2rem] border border-border bg-surface p-5 transition hover:-translate-y-0.5 hover:bg-surface-2"
     >
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(251,191,36,0.10),transparent_30%),radial-gradient(circle_at_bottom_left,rgba(34,197,94,0.08),transparent_28%)] opacity-0 transition group-hover:opacity-100" />
+      <div className="absolute inset-0 bg-gradient-to-br from-accent/10 via-transparent to-transparent opacity-0 transition group-hover:opacity-100" />
 
       <div className="relative">
         <div className="flex flex-wrap items-center gap-2">
@@ -147,42 +147,42 @@ function ContentRow({
             {content.status}
           </span>
 
-          <span className="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-xs text-white/45">
+          <span className="rounded-full border border-border bg-surface-2 px-3 py-1 text-xs text-fg-dim">
             {content.content_type}
           </span>
 
-          <span className="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-xs text-white/45">
+          <span className="rounded-full border border-border bg-surface-2 px-3 py-1 text-xs text-fg-dim">
             {content.visibility}
           </span>
 
           {content.is_featured ? (
-            <span className="rounded-full border border-amber-300/30 bg-amber-300/10 px-3 py-1 text-xs font-medium text-amber-100">
+            <span className="rounded-full border border-accent/30 bg-accent-soft px-3 py-1 text-xs font-medium text-accent">
               Featured
             </span>
           ) : null}
         </div>
 
-        <h3 className="mt-4 text-xl font-semibold tracking-tight text-white">
+        <h3 className="font-display mt-4 text-xl font-semibold tracking-tight text-fg">
           {content.title}
         </h3>
 
         {content.excerpt ? (
-          <p className="mt-3 line-clamp-3 text-sm leading-6 text-white/60">
+          <p className="mt-3 line-clamp-3 text-sm leading-6 text-fg-dim">
             {content.excerpt}
           </p>
         ) : (
-          <p className="mt-3 text-sm leading-6 text-white/35">
+          <p className="mt-3 text-sm leading-6 text-fg-dim">
             No excerpt yet.
           </p>
         )}
 
-        <div className="mt-5 flex items-center justify-between gap-3 text-xs text-white/40">
+        <div className="mt-5 flex items-center justify-between gap-3 text-xs text-fg-dim">
           <span className="inline-flex items-center gap-1.5">
             <Clock3 className="h-3.5 w-3.5" />
             {content.reading_time_minutes ?? 0} min read
           </span>
 
-          <span className="text-white/70">Manage →</span>
+          <span className="text-fg-dim">Manage →</span>
         </div>
       </div>
     </Link>
@@ -242,20 +242,20 @@ export default function WriterDashboardPage() {
   return (
     <RoleGuard allowedRoles={["WRITER", "TEACHER", "ADMIN"]}>
       <div className="space-y-8 pb-10">
-        <section className="relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-gradient-to-br from-slate-950 via-zinc-950 to-black p-6 shadow-[0_24px_80px_rgba(0,0,0,0.42)] sm:p-8 lg:p-10">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(251,191,36,0.12),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(34,197,94,0.10),transparent_28%),radial-gradient(circle_at_center,rgba(14,165,233,0.08),transparent_34%)]" />
+        <section className="overflow-hidden rounded-[2rem] border border-border bg-surface">
+          <div className="kanga" />
 
-          <div className="relative grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
+          <div className="grid gap-8 p-6 sm:p-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-end lg:p-10">
             <div>
-              <p className="text-xs uppercase tracking-[0.28em] text-white/40">
+              <p className="text-xs uppercase tracking-[0.28em] text-accent">
                 Writer Studio
               </p>
 
-              <h1 className="mt-3 text-3xl font-semibold tracking-tight text-white sm:text-5xl">
+              <h1 className="font-display mt-3 font-display text-3xl tracking-tight text-fg sm:text-5xl">
                 Welcome, {user?.full_name ?? "Creator"}
               </h1>
 
-              <p className="mt-4 max-w-2xl text-sm leading-7 text-white/65 sm:text-base">
+              <p className="mt-4 max-w-2xl text-sm leading-7 text-fg-dim sm:text-base">
                 Create, refine, and manage your publishing workflow. Drafts can
                 move to review, then become public once approved.
               </p>
@@ -263,27 +263,27 @@ export default function WriterDashboardPage() {
               <div className="mt-6 flex flex-wrap gap-3">
                 <Link
                   href="/writer/publish"
-                  className="rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-black transition hover:scale-[1.01] hover:bg-white/90"
+                  className="rounded-2xl bg-accent px-4 py-3 text-sm font-semibold text-on-accent transition hover:scale-[1.01] hover:opacity-90"
                 >
                   Create new content
                 </Link>
 
                 <Link
                   href="/feed"
-                  className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/75 transition hover:bg-white/10 hover:text-white"
+                  className="rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-fg-dim transition hover:bg-surface-2 hover:text-fg"
                 >
                   View public feed
                 </Link>
               </div>
             </div>
 
-            <div className="rounded-[2rem] border border-white/10 bg-black/25 p-5 backdrop-blur">
+            <div className="rounded-[2rem] border border-border bg-surface-2 p-5 backdrop-blur">
               <div className="flex items-center gap-3">
-                <Sparkles className="h-5 w-5 text-amber-200/80" />
-                <h2 className="font-semibold text-white">Your workspace</h2>
+                <Sparkles className="h-5 w-5 text-accent/80" />
+                <h2 className="font-display font-semibold text-fg">Your workspace</h2>
               </div>
 
-              <div className="mt-4 grid gap-3 text-sm text-white/60">
+              <div className="mt-4 grid gap-3 text-sm text-fg-dim">
                 <p>• Draft, publish, and resubmit content</p>
                 <p>• Track moderation and creator performance</p>
                 <p>• Build a polished publishing presence</p>
@@ -305,36 +305,36 @@ export default function WriterDashboardPage() {
           ))}
         </section>
 
-        <section className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-5">
+        <section className="rounded-[2rem] border border-border bg-surface p-5">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
-              <p className="text-xs uppercase tracking-[0.24em] text-white/40">
+              <p className="text-xs uppercase tracking-[0.24em] text-fg-dim">
                 Account summary
               </p>
 
-              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-white">
+              <h2 className="font-display mt-2 text-2xl font-semibold tracking-tight text-fg">
                 Your role and access
               </h2>
 
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-white/55">
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-fg-dim">
                 Your publishing permissions are based on this role.
               </p>
             </div>
 
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/20 px-4 py-2 text-sm text-white/70">
-              <Users className="h-4 w-4 text-white/40" />
+            <div className="inline-flex items-center gap-2 rounded-full border border-border bg-surface-2 px-4 py-2 text-sm text-fg-dim">
+              <Users className="h-4 w-4 text-fg-dim" />
               {user?.role ?? "Unknown"}
             </div>
           </div>
         </section>
 
-        <section className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-5">
+        <section className="rounded-[2rem] border border-border bg-surface p-5">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
-              <p className="text-xs uppercase tracking-[0.24em] text-white/40">
+              <p className="text-xs uppercase tracking-[0.24em] text-fg-dim">
                 My content
               </p>
-              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-white">
+              <h2 className="font-display mt-2 text-2xl font-semibold tracking-tight text-fg">
                 Publishing queue
               </h2>
             </div>
@@ -345,11 +345,10 @@ export default function WriterDashboardPage() {
                   key={tab.label}
                   type="button"
                   onClick={() => setStatusFilter(tab.value)}
-                  className={`rounded-2xl px-4 py-2 text-sm transition ${
-                    statusFilter === tab.value
-                      ? "bg-white text-black"
-                      : "border border-white/10 bg-white/5 text-white/70 hover:bg-white/10 hover:text-white"
-                  }`}
+                  className={`rounded-2xl px-4 py-2 text-sm transition ${statusFilter === tab.value
+                    ? "bg-accent text-on-accent"
+                    : "border border-border bg-surface text-fg-dim hover:bg-surface-2 hover:text-fg"
+                    }`}
                 >
                   {tab.label}
                 </button>
@@ -364,7 +363,7 @@ export default function WriterDashboardPage() {
           ) : null}
 
           {myContentQuery.isError ? (
-            <p className="mt-5 rounded-2xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
+            <p className="mt-5 rounded-2xl border border-danger/30 bg-danger-soft px-4 py-3 text-sm text-danger">
               Could not load your content. Confirm the backend has
               GET /api/v1/content/mine.
             </p>
@@ -379,8 +378,8 @@ export default function WriterDashboardPage() {
           ) : null}
 
           {!myContentQuery.isLoading &&
-          !myContentQuery.isError &&
-          items.length === 0 ? (
+            !myContentQuery.isError &&
+            items.length === 0 ? (
             <div className="mt-5">
               <EmptyState
                 title="No content found"

@@ -15,25 +15,28 @@ export default function HubsPage() {
 
     return (
         <div className="space-y-8">
-            <section className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 shadow-2xl">
-                <p className="text-xs uppercase tracking-[0.28em] text-white/40">
-                    Community hubs
-                </p>
+            <section className="overflow-hidden rounded-[2rem] border border-border bg-surface shadow-2xl">
+                <div className="kanga" />
+                <div className="p-6">
+                    <p className="text-xs uppercase tracking-[0.28em] text-accent">
+                        Community hubs
+                    </p>
 
-                <h1 className="mt-3 text-3xl font-semibold tracking-tight">
-                    Join focused communities
-                </h1>
+                    <h1 className="font-display mt-3 font-display text-3xl tracking-tight text-fg">
+                        Join focused communities
+                    </h1>
 
-                <p className="mt-4 max-w-2xl text-sm leading-6 text-white/60">
-                    Hubs organize the ecosystem around writers, students, teachers,
-                    African stories, faith, children, and poetry.
-                </p>
+                    <p className="mt-4 max-w-2xl text-sm leading-6 text-fg-dim">
+                        Hubs organize the ecosystem around writers, students, teachers,
+                        African stories, faith, children, and poetry.
+                    </p>
+                </div>
             </section>
 
             {isLoading ? <LoadingState label="Loading hubs..." /> : null}
 
             {isError ? (
-                <div className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                <div className="rounded-2xl border border-danger/30 bg-danger-soft px-4 py-3 text-sm text-danger">
                     Could not load hubs.
                 </div>
             ) : null}
@@ -44,16 +47,16 @@ export default function HubsPage() {
                         <Link
                             key={hub.id}
                             href={`/hubs/${hub.slug}?id=${hub.id}`}
-                            className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-5 transition hover:-translate-y-0.5 hover:bg-white/[0.07]"
+                            className="rounded-[2rem] border border-border bg-surface p-5 transition hover:-translate-y-0.5 hover:bg-surface-2"
                         >
-                            <p className="text-xs uppercase tracking-[0.2em] text-white/40">
+                            <p className="text-xs uppercase tracking-[0.2em] text-fg-dim">
                                 Hub
                             </p>
 
-                            <h2 className="mt-3 text-xl font-semibold">{hub.name}</h2>
+                            <h2 className="font-display mt-3 text-xl font-semibold">{hub.name}</h2>
 
                             {hub.description ? (
-                                <p className="mt-3 line-clamp-3 text-sm leading-6 text-white/60">
+                                <p className="mt-3 line-clamp-3 text-sm leading-6 text-fg-dim">
                                     {hub.description}
                                 </p>
                             ) : null}

@@ -64,21 +64,21 @@ export default function AttachChildrenContentPage() {
                 ) : null}
 
                 {content ? (
-                    <section className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 shadow-2xl">
-                        <p className="text-xs uppercase tracking-[0.28em] text-white/40">
+                    <section className="rounded-[2rem] border border-border bg-surface p-6 shadow-2xl">
+                        <p className="text-xs uppercase tracking-[0.28em] text-fg-dim">
                             Children’s Learning Space
                         </p>
 
-                        <h1 className="mt-3 text-3xl font-semibold tracking-tight">
+                        <h1 className="font-display mt-3 text-3xl font-semibold tracking-tight">
                             Add to children-safe library
                         </h1>
 
-                        <p className="mt-4 text-sm leading-6 text-white/60">
+                        <p className="mt-4 text-sm leading-6 text-fg-dim">
                             Content: <strong>{content.title}</strong>
                         </p>
 
                         {content.content_type !== "CHILDREN" ? (
-                            <p className="mt-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+                            <p className="mt-4 rounded-2xl border border-accent/30 bg-accent-soft px-4 py-3 text-sm text-accent">
                                 This content is marked as <strong>{content.content_type}</strong>.
                                 Children’s library entries require content type{" "}
                                 <strong>CHILDREN</strong>.
@@ -86,7 +86,7 @@ export default function AttachChildrenContentPage() {
                         ) : null}
 
                         {content.status !== "PUBLISHED" ? (
-                            <p className="mt-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+                            <p className="mt-4 rounded-2xl border border-accent/30 bg-accent-soft px-4 py-3 text-sm text-accent">
                                 This content is currently <strong>{content.status}</strong>.
                                 It must be approved and published before it can be added to the
                                 children’s section.
@@ -96,7 +96,7 @@ export default function AttachChildrenContentPage() {
                         <div className="mt-6 flex flex-wrap gap-3">
                             <Link
                                 href={`/writer/content/${contentId}/edit`}
-                                className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/75 hover:bg-white/10"
+                                className="rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-fg-dim hover:bg-surface-2"
                             >
                                 Back to content
                             </Link>
@@ -104,7 +104,7 @@ export default function AttachChildrenContentPage() {
                             {content.status === "PUBLISHED" ? (
                                 <Link
                                     href={`/read/${content.slug}`}
-                                    className="rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-black"
+                                    className="rounded-2xl bg-accent px-4 py-3 text-sm font-semibold text-on-accent"
                                 >
                                     Open public page
                                 </Link>
@@ -115,20 +115,20 @@ export default function AttachChildrenContentPage() {
 
                 <form
                     onSubmit={handleSubmit}
-                    className="grid gap-5 rounded-[2rem] border border-white/10 bg-white/[0.04] p-6"
+                    className="grid gap-5 rounded-[2rem] border border-border bg-surface p-6"
                 >
                     <div>
-                        <label className="text-sm text-white/70">Age group</label>
+                        <label className="text-sm text-fg-dim">Age group</label>
                         <select
                             value={ageGroup}
                             onChange={(event) =>
                                 setAgeGroup(event.target.value as ChildrenAgeGroup)
                             }
-                            className="mt-2 w-full rounded-2xl border border-white/10 bg-[#111113] px-4 py-3 text-sm text-white outline-none"
+                            className="mt-2 w-full rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-fg outline-none"
                         >
                             {ageGroupOptions.map((option) => (
                                 <option
-                                    className="bg-[#111113] text-white"
+                                    className="bg-surface text-fg"
                                     key={option}
                                     value={option}
                                 >
@@ -138,24 +138,24 @@ export default function AttachChildrenContentPage() {
                         </select>
                     </div>
 
-                    <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                        <h2 className="text-sm font-semibold text-white">
+                    <div className="rounded-2xl border border-border bg-surface-2 p-4">
+                        <h2 className="font-display text-sm font-semibold text-fg">
                             Safety requirement
                         </h2>
-                        <p className="mt-2 text-sm leading-6 text-white/55">
+                        <p className="mt-2 text-sm leading-6 text-fg-dim">
                             Only approved, published CHILDREN content can be placed in this
                             library. This keeps children’s learning curated and moderated.
                         </p>
                     </div>
 
                     {createMutation.isError ? (
-                        <p className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                        <p className="rounded-2xl border border-danger/30 bg-danger-soft px-4 py-3 text-sm text-danger">
                             {error}
                         </p>
                     ) : null}
 
                     {createMutation.isSuccess ? (
-                        <p className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+                        <p className="rounded-2xl border border-success/30 bg-success-soft px-4 py-3 text-sm text-success">
                             Content added to the children’s library.
                         </p>
                     ) : null}
@@ -163,7 +163,7 @@ export default function AttachChildrenContentPage() {
                     <button
                         type="submit"
                         disabled={createMutation.isPending || !canAttach}
-                        className="w-fit rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-black disabled:cursor-not-allowed disabled:opacity-50"
+                        className="w-fit rounded-2xl bg-accent px-4 py-3 text-sm font-semibold text-on-accent disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         {createMutation.isPending
                             ? "Adding..."

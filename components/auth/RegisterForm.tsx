@@ -42,9 +42,9 @@ export default function RegisterForm() {
     return (
         <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-                <label className="text-sm text-white/80">Full name</label>
+                <label className="text-sm text-fg-dim">Full name</label>
                 <input
-                    className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/30 focus:border-white/30 focus:ring-2 focus:ring-white/10"
+                    className="mt-2 w-full rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-fg outline-none transition placeholder:text-fg-dim/70 focus:border-accent/40 focus:ring-2 focus:ring-accent/20"
                     value={fullName}
                     onChange={(event) => setFullName(event.target.value)}
                     required
@@ -52,18 +52,18 @@ export default function RegisterForm() {
             </div>
 
             <div>
-                <label className="text-sm text-white/80">Username</label>
+                <label className="text-sm text-fg-dim">Username</label>
                 <input
-                    className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/30 focus:border-white/30 focus:ring-2 focus:ring-white/10"
+                    className="mt-2 w-full rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-fg outline-none transition placeholder:text-fg-dim/70 focus:border-accent/40 focus:ring-2 focus:ring-accent/20"
                     value={username}
                     onChange={(event) => setUsername(event.target.value)}
                 />
             </div>
 
             <div>
-                <label className="text-sm text-white/80">Email</label>
+                <label className="text-sm text-fg-dim">Email</label>
                 <input
-                    className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/30 focus:border-white/30 focus:ring-2 focus:ring-white/10"
+                    className="mt-2 w-full rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-fg outline-none transition placeholder:text-fg-dim/70 focus:border-accent/40 focus:ring-2 focus:ring-accent/20"
                     type="email"
                     value={email}
                     onChange={(event) => setEmail(event.target.value)}
@@ -72,9 +72,9 @@ export default function RegisterForm() {
             </div>
 
             <div>
-                <label className="text-sm text-white/80">Password</label>
+                <label className="text-sm text-fg-dim">Password</label>
                 <input
-                    className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/30 focus:border-white/30 focus:ring-2 focus:ring-white/10"
+                    className="mt-2 w-full rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-fg outline-none transition placeholder:text-fg-dim/70 focus:border-accent/40 focus:ring-2 focus:ring-accent/20"
                     type="password"
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
@@ -83,7 +83,7 @@ export default function RegisterForm() {
             </div>
 
             {mutation.isError ? (
-                <p className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                <p className="rounded-2xl border border-danger/30 bg-danger-soft px-4 py-3 text-sm text-danger">
                     {errorMessage}
                 </p>
             ) : null}
@@ -91,7 +91,7 @@ export default function RegisterForm() {
             <button
                 type="submit"
                 disabled={mutation.isPending}
-                className="w-full rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-black transition hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-60"
+                className="w-full rounded-2xl bg-accent px-4 py-3 text-sm font-semibold text-on-accent transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
             >
                 {mutation.isPending ? "Creating account..." : "Create account"}
             </button>

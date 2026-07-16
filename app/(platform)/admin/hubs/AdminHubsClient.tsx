@@ -157,16 +157,16 @@ export default function AdminHubsClient() {
     return (
         <RoleGuard allowedRoles={["ADMIN"]}>
             <div className="space-y-8">
-                <section className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-5 shadow-2xl sm:p-6">
-                    <p className="text-xs uppercase tracking-[0.28em] text-white/40">
+                <section className="rounded-[2rem] border border-border bg-surface p-5 shadow-2xl sm:p-6">
+                    <p className="text-xs uppercase tracking-[0.28em] text-fg-dim">
                         Admin Hubs
                     </p>
 
-                    <h1 className="mt-3 text-2xl font-semibold tracking-tight sm:text-3xl">
+                    <h1 className="font-display mt-3 text-2xl font-semibold tracking-tight sm:text-3xl">
                         Manage community hubs
                     </h1>
 
-                    <p className="mt-4 max-w-2xl text-sm leading-6 text-white/60">
+                    <p className="mt-4 max-w-2xl text-sm leading-6 text-fg-dim">
                         Hubs create focused community spaces around writers, faith,
                         education, children, poetry, and African stories.
                     </p>
@@ -175,15 +175,15 @@ export default function AdminHubsClient() {
                 <section className="grid gap-6 xl:grid-cols-[420px_1fr]">
                     <form
                         onSubmit={handleSubmit}
-                        className="h-fit rounded-[2rem] border border-white/10 bg-white/[0.04] p-5"
+                        className="h-fit rounded-[2rem] border border-border bg-surface p-5"
                     >
                         <div className="flex items-start justify-between gap-4">
                             <div>
-                                <p className="text-xs uppercase tracking-[0.22em] text-white/40">
+                                <p className="text-xs uppercase tracking-[0.22em] text-fg-dim">
                                     Hub form
                                 </p>
 
-                                <h2 className="mt-2 text-xl font-semibold">
+                                <h2 className="font-display mt-2 text-xl font-semibold">
                                     {editingHub ? "Edit hub" : "Create hub"}
                                 </h2>
                             </div>
@@ -191,8 +191,8 @@ export default function AdminHubsClient() {
                             {editingHub ? (
                                 <span
                                     className={`rounded-full px-3 py-1 text-xs ${editingHub.is_active
-                                        ? "bg-emerald-500/10 text-emerald-200"
-                                        : "bg-red-500/10 text-red-200"
+                                        ? "bg-success-soft text-success"
+                                        : "bg-danger-soft text-danger"
                                         }`}
                                 >
                                     {editingHub.is_active ? "Active" : "Inactive"}
@@ -202,54 +202,54 @@ export default function AdminHubsClient() {
 
                         <div className="mt-5 space-y-4">
                             <div>
-                                <label className="text-sm text-white/70">Name</label>
+                                <label className="text-sm text-fg-dim">Name</label>
                                 <input
                                     value={name}
                                     onChange={(event) => handleNameChange(event.target.value)}
-                                    className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none transition focus:border-white/30"
+                                    className="mt-2 w-full rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-fg outline-none transition focus:border-accent/40"
                                     placeholder="Writers Hub"
                                     required
                                 />
                             </div>
 
                             <div>
-                                <label className="text-sm text-white/70">Slug</label>
+                                <label className="text-sm text-fg-dim">Slug</label>
                                 <input
                                     value={slug}
                                     onChange={(event) => setSlug(slugify(event.target.value))}
-                                    className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none transition focus:border-white/30"
+                                    className="mt-2 w-full rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-fg outline-none transition focus:border-accent/40"
                                     placeholder="writers-hub"
                                     required
                                 />
 
-                                <p className="mt-2 text-xs text-white/35">
+                                <p className="mt-2 text-xs text-fg-dim">
                                     Public URL: /hubs/{slug || "hub-slug"}
                                 </p>
                             </div>
 
                             <div>
-                                <label className="text-sm text-white/70">Description</label>
+                                <label className="text-sm text-fg-dim">Description</label>
                                 <textarea
                                     value={description}
                                     onChange={(event) => setDescription(event.target.value)}
                                     rows={5}
-                                    className="mt-2 w-full resize-none rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm leading-6 text-white outline-none transition focus:border-white/30"
+                                    className="mt-2 w-full resize-none rounded-2xl border border-border bg-surface px-4 py-3 text-sm leading-6 text-fg outline-none transition focus:border-accent/40"
                                     placeholder="Describe what this community hub is for..."
                                 />
                             </div>
 
                             <div>
-                                <label className="text-sm text-white/70">Cover image URL</label>
+                                <label className="text-sm text-fg-dim">Cover image URL</label>
                                 <input
                                     value={coverImageUrl}
                                     onChange={(event) => setCoverImageUrl(event.target.value)}
-                                    className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none transition focus:border-white/30"
+                                    className="mt-2 w-full rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-fg outline-none transition focus:border-accent/40"
                                     placeholder="https://..."
                                 />
                             </div>
 
                             {createMutation.isError || updateMutation.isError ? (
-                                <p className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                                <p className="rounded-2xl border border-danger/30 bg-danger-soft px-4 py-3 text-sm text-danger">
                                     {errorMessage}
                                 </p>
                             ) : null}
@@ -258,7 +258,7 @@ export default function AdminHubsClient() {
                                 <button
                                     type="submit"
                                     disabled={isSaving}
-                                    className="rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-black transition hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-60"
+                                    className="rounded-2xl bg-accent px-4 py-3 text-sm font-semibold text-on-accent transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
                                 >
                                     {isSaving
                                         ? "Saving..."
@@ -271,7 +271,7 @@ export default function AdminHubsClient() {
                                     <button
                                         type="button"
                                         onClick={resetForm}
-                                        className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/75 transition hover:bg-white/10 hover:text-white"
+                                        className="rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-fg-dim transition hover:bg-surface-2 hover:text-fg"
                                     >
                                         Cancel
                                     </button>
@@ -280,14 +280,14 @@ export default function AdminHubsClient() {
                         </div>
                     </form>
 
-                    <section className="min-w-0 rounded-[2rem] border border-white/10 bg-white/[0.04] p-5">
+                    <section className="min-w-0 rounded-[2rem] border border-border bg-surface p-5">
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                             <div>
-                                <p className="text-xs uppercase tracking-[0.22em] text-white/40">
+                                <p className="text-xs uppercase tracking-[0.22em] text-fg-dim">
                                     Existing hubs
                                 </p>
 
-                                <h2 className="mt-2 text-xl font-semibold">
+                                <h2 className="font-display mt-2 text-xl font-semibold">
                                     {hubs.length} hub{hubs.length === 1 ? "" : "s"}
                                 </h2>
                             </div>
@@ -295,7 +295,7 @@ export default function AdminHubsClient() {
                             <button
                                 type="button"
                                 onClick={() => hubsQuery.refetch()}
-                                className="w-fit rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/70 transition hover:bg-white/10 hover:text-white"
+                                className="w-fit rounded-2xl border border-border bg-surface px-4 py-2 text-sm text-fg-dim transition hover:bg-surface-2 hover:text-fg"
                             >
                                 Refresh
                             </button>
@@ -308,7 +308,7 @@ export default function AdminHubsClient() {
                         ) : null}
 
                         {hubsQuery.isError ? (
-                            <p className="mt-5 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                            <p className="mt-5 rounded-2xl border border-danger/30 bg-danger-soft px-4 py-3 text-sm text-danger">
                                 Could not load hubs. Confirm the backend is running and the
                                 adminHubs API method exists.
                             </p>
@@ -319,41 +319,41 @@ export default function AdminHubsClient() {
                                 {hubs.map((hub) => (
                                     <article
                                         key={hub.id}
-                                        className="rounded-2xl border border-white/10 bg-black/20 p-4"
+                                        className="rounded-2xl border border-border bg-surface-2 p-4"
                                     >
                                         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                                             <div className="min-w-0">
                                                 <div className="flex flex-wrap items-center gap-2">
-                                                    <h3 className="break-words text-lg font-semibold">
+                                                    <h3 className="font-display break-words text-lg font-semibold">
                                                         {hub.name}
                                                     </h3>
 
                                                     <span
                                                         className={`rounded-full px-3 py-1 text-xs ${hub.is_active
-                                                            ? "bg-emerald-500/10 text-emerald-200"
-                                                            : "bg-red-500/10 text-red-200"
+                                                            ? "bg-success-soft text-success"
+                                                            : "bg-danger-soft text-danger"
                                                             }`}
                                                     >
                                                         {hub.is_active ? "Active" : "Inactive"}
                                                     </span>
                                                 </div>
 
-                                                <p className="mt-1 break-all text-xs text-white/40">
+                                                <p className="mt-1 break-all text-xs text-fg-dim">
                                                     /{hub.slug}
                                                 </p>
 
                                                 {hub.description ? (
-                                                    <p className="mt-3 text-sm leading-6 text-white/60">
+                                                    <p className="mt-3 text-sm leading-6 text-fg-dim">
                                                         {hub.description}
                                                     </p>
                                                 ) : (
-                                                    <p className="mt-3 text-sm text-white/35">
+                                                    <p className="mt-3 text-sm text-fg-dim">
                                                         No description provided.
                                                     </p>
                                                 )}
 
                                                 {hub.cover_image_url ? (
-                                                    <p className="mt-3 break-all text-xs text-white/35">
+                                                    <p className="mt-3 break-all text-xs text-fg-dim">
                                                         Cover: {hub.cover_image_url}
                                                     </p>
                                                 ) : null}
@@ -363,7 +363,7 @@ export default function AdminHubsClient() {
                                                 <button
                                                     type="button"
                                                     onClick={() => startEdit(hub)}
-                                                    className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/75 transition hover:bg-white/10 hover:text-white"
+                                                    className="rounded-2xl border border-border bg-surface px-4 py-2 text-sm text-fg-dim transition hover:bg-surface-2 hover:text-fg"
                                                 >
                                                     Edit
                                                 </button>
@@ -373,8 +373,8 @@ export default function AdminHubsClient() {
                                                     onClick={() => toggleHubStatus(hub)}
                                                     disabled={statusMutation.isPending}
                                                     className={`rounded-2xl px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${hub.is_active
-                                                        ? "border border-red-500/30 bg-red-500/10 text-red-100 hover:bg-red-500/15"
-                                                        : "border border-emerald-500/30 bg-emerald-500/10 text-emerald-100 hover:bg-emerald-500/15"
+                                                        ? "border border-danger/30 bg-danger-soft text-danger hover:bg-danger-soft"
+                                                        : "border border-success/30 bg-success-soft text-success hover:bg-success-soft"
                                                         }`}
                                                 >
                                                     {statusMutation.isPending ? "Saving..." : hub.is_active ? "Deactivate" : "Activate"}
