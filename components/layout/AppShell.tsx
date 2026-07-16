@@ -2,14 +2,13 @@ import { ReactNode, Suspense } from "react";
 
 import Sidebar from "@/components/layout/Sidebar";
 import Topbar from "@/components/layout/Topbar";
-import { SIDEBAR_PADDING_CLASS } from "@/components/layout/layoutConstants";
 
 export default function AppShell({ children }: { children: ReactNode }) {
   return (
-    <div className={`min-h-screen bg-[#09090b] text-white ${SIDEBAR_PADDING_CLASS}`}>
+    <div className="min-h-screen bg-ink text-fg md:pl-64 xl:pl-72">
       <Sidebar />
 
-      <div className="min-h-screen bg-[#09090b]">
+      <div className="min-h-screen bg-ink">
         <Suspense fallback={null}>
           <Topbar />
         </Suspense>

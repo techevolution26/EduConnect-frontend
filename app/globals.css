@@ -1,26 +1,107 @@
 @import "tailwindcss";
 
+/* ---------- Light mode (default) ---------- */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --ink: #f7f4ec;
+  --surface: #ffffff;
+  --surface-2: #f1ecdd;
+  --fg: #1c2027;
+  --fg-dim: #63666d;
+  --border: rgba(28, 32, 39, 0.1);
+
+  --accent: #e8a63b;
+  --on-accent: #1c2027;
+  --accent-soft: rgba(232, 166, 59, 0.12);
+
+  --success: #2f7350;
+  --success-soft: rgba(47, 115, 80, 0.1);
+
+  --danger: #9c3524;
+  --danger-soft: rgba(156, 53, 36, 0.08);
+
+  --info: #2c4a63;
+
+  /* Signature motif colors — constant across themes */
+  --sig-1: #e8a63b;
+  --sig-2: #3a5a78;
+  --sig-3: #4c9a6a;
 }
 
+/* ---------- Dark mode ---------- */
+.dark {
+  --ink: #0e1116;
+  --surface: #171b24;
+  --surface-2: #212838;
+  --fg: #efead9;
+  --fg-dim: #b3b0a2;
+  --border: rgba(239, 234, 217, 0.1);
+
+  --accent: #e8a63b;
+  --on-accent: #17110a;
+  --accent-soft: rgba(232, 166, 59, 0.14);
+
+  --success: #5fb37f;
+  --success-soft: rgba(95, 179, 127, 0.14);
+
+  --danger: #e2725a;
+  --danger-soft: rgba(226, 114, 90, 0.14);
+
+  --info: #7ba0be;
+}
+
+/* Map semantic tokens to Tailwind utilities. "inline" keeps these as
+   live var() references instead of build-time constants, which is
+   what lets bg-ink / text-fg / etc. respond to the .dark class at
+   runtime rather than being frozen at whichever value was current
+   during the build. */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --color-ink: var(--ink);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-fg: var(--fg);
+  --color-fg-dim: var(--fg-dim);
+  --color-border: var(--border);
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
+  --color-accent-soft: var(--accent-soft);
+
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+
+  --color-info: var(--info);
+
+  --font-sans: var(--font-worksans);
+  --font-display: var(--font-fraunces);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--ink);
+  color: var(--fg);
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Signature element: a thin repeating stripe referencing the border
+   trim on kanga cloth, the East African printed fabric that
+   traditionally carries a written saying along its edge — a fitting
+   nod for a platform built around carrying people's words. Used once
+   boldly per screen (hero, featured card), never as wallpaper. */
+.kanga {
+  height: 9px;
+  background: repeating-linear-gradient(-45deg,
+      var(--sig-1) 0 7px,
+      var(--sig-2) 7px 14px,
+      var(--sig-3) 14px 21px);
+}
+
+.kanga-thin {
+  height: 3px;
+  border-radius: 999px;
+  opacity: 0.7;
+  background: repeating-linear-gradient(90deg,
+      var(--sig-1) 0 10px,
+      var(--sig-3) 10px 20px);
 }
