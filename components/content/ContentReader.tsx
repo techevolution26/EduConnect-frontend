@@ -8,269 +8,269 @@ import remarkGfm from "remark-gfm";
 import type { ContentDetail } from "@/lib/types";
 
 type ContentAsset = {
-    id: string;
-    asset_type: "IMAGE" | "FILE" | string;
-    url: string;
-    filename?: string | null;
-    mime_type?: string | null;
+  id: string;
+  asset_type: "IMAGE" | "FILE" | string;
+  url: string;
+  filename?: string | null;
+  mime_type?: string | null;
 };
 
 function formatRelativeTime(dateInput: string | Date): string {
-    const date = new Date(dateInput);
-    const now = new Date();
+  const date = new Date(dateInput);
+  const now = new Date();
 
-    if (Number.isNaN(date.getTime())) return "";
+  if (Number.isNaN(date.getTime())) return "";
 
-    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
-    if (diffInSeconds < 0) return date.toLocaleDateString();
+  if (diffInSeconds < 0) return date.toLocaleDateString();
 
-    const mins = Math.floor(diffInSeconds / 60);
-    const hours = Math.floor(mins / 60);
-    const days = Math.floor(hours / 24);
-    const weeks = Math.floor(days / 7);
+  const mins = Math.floor(diffInSeconds / 60);
+  const hours = Math.floor(mins / 60);
+  const days = Math.floor(hours / 24);
+  const weeks = Math.floor(days / 7);
 
-    if (mins < 60) {
-        return `${mins === 0 ? 1 : mins} ${mins === 1 ? "min" : "mins"} ago`;
-    }
+  if (mins < 60) {
+    return `${mins === 0 ? 1 : mins} ${mins === 1 ? "min" : "mins"} ago`;
+  }
 
-    if (hours < 24) {
-        return `${hours} ${hours === 1 ? "hour" : "hours"} ago`;
-    }
+  if (hours < 24) {
+    return `${hours} ${hours === 1 ? "hour" : "hours"} ago`;
+  }
 
-    if (days < 7) {
-        return `${days} ${days === 1 ? "day" : "days"} ago`;
-    }
+  if (days < 7) {
+    return `${days} ${days === 1 ? "day" : "days"} ago`;
+  }
 
-    if (weeks < 5) {
-        return `${weeks} ${weeks === 1 ? "week" : "weeks"} ago`;
-    }
+  if (weeks < 5) {
+    return `${weeks} ${weeks === 1 ? "week" : "weeks"} ago`;
+  }
 
-    if (date.getFullYear() === now.getFullYear()) {
-        const month = String(date.getMonth() + 1).padStart(2, "0");
-        const year = date.getFullYear();
-        return `${month}/${year}`;
-    }
-
-    const day = String(date.getDate()).padStart(2, "0");
+  if (date.getFullYear() === now.getFullYear()) {
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
+    return `${month}/${year}`;
+  }
+
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
 }
 
 function getFileLabel(asset: ContentAsset) {
-    return asset.filename || "Download file";
+  return asset.filename || "Download file";
 }
 
 function isLocalUploadUrl(url: string) {
-    return (
-        url.startsWith("http://localhost:8000/") ||
-        url.startsWith("http://127.0.0.1:8000/")
-    );
+  return (
+    url.startsWith("http://localhost:8000/") ||
+    url.startsWith("http://127.0.0.1:8000/")
+  );
 }
 
 function ResponsiveImage({
-    src,
-    alt,
-    caption,
-    priority = false,
-    variant = "gallery",
+  src,
+  alt,
+  caption,
+  priority = false,
+  variant = "gallery",
 }: {
-    src: string;
-    alt: string;
-    caption?: string | null;
-    priority?: boolean;
-    variant?: "cover" | "gallery";
+  src: string;
+  alt: string;
+  caption?: string | null;
+  priority?: boolean;
+  variant?: "cover" | "gallery";
 }) {
-    const local = isLocalUploadUrl(src);
+  const local = isLocalUploadUrl(src);
 
-    return (
-        <figure className="overflow-hidden rounded-[1.5rem] border border-white/10 bg-black/20">
-            <div
-                className={[
-                    "relative w-full overflow-hidden bg-black/30",
-                    variant === "cover"
-                        ? "aspect-[16/9] max-h-[28rem] sm:aspect-[21/9] sm:max-h-[32rem]"
-                        : "aspect-[16/10] sm:aspect-[4/3]",
-                ].join(" ")}
-            >
-                <Image
-                    src={src}
-                    alt={alt}
-                    fill
-                    priority={priority}
-                    unoptimized={local}
-                    sizes={
-                        variant === "cover"
-                            ? "(max-width: 640px) 100vw, 92vw"
-                            : "(max-width: 640px) 100vw, (max-width: 1024px) 48vw, 420px"
-                    }
-                    className="object-cover object-center"
-                />
-            </div>
+  return (
+    <figure className="overflow-hidden rounded-[1.5rem] border border-border bg-surface-2">
+      <div
+        className={[
+          "relative w-full overflow-hidden bg-surface-2",
+          variant === "cover"
+            ? "aspect-[16/9] max-h-[28rem] sm:aspect-[21/9] sm:max-h-[32rem]"
+            : "aspect-[16/10] sm:aspect-[4/3]",
+        ].join(" ")}
+      >
+        <Image
+          src={src}
+          alt={alt}
+          fill
+          priority={priority}
+          unoptimized={local}
+          sizes={
+            variant === "cover"
+              ? "(max-width: 640px) 100vw, 92vw"
+              : "(max-width: 640px) 100vw, (max-width: 1024px) 48vw, 420px"
+          }
+          className="object-cover object-center"
+        />
+      </div>
 
-            {caption ? (
-                <figcaption className="border-t border-white/10 px-4 py-3 text-xs text-white/45">
-                    {caption}
-                </figcaption>
-            ) : null}
-        </figure>
-    );
+      {caption ? (
+        <figcaption className="border-t border-border px-4 py-3 text-xs text-fg-dim">
+          {caption}
+        </figcaption>
+      ) : null}
+    </figure>
+  );
 }
 
 export default function ContentReader({ content }: { content: ContentDetail }) {
-    const assets = (content.assets ?? []) as ContentAsset[];
-    const imageAssets = assets.filter((asset) => asset.asset_type === "IMAGE");
-    const fileAssets = assets.filter((asset) => asset.asset_type === "FILE");
+  const assets = (content.assets ?? []) as ContentAsset[];
+  const imageAssets = assets.filter((asset) => asset.asset_type === "IMAGE");
+  const fileAssets = assets.filter((asset) => asset.asset_type === "FILE");
 
-    const coverImage = content.cover_image_url || imageAssets[0]?.url || null;
-    const galleryImages = coverImage
-        ? imageAssets.filter((asset) => asset.url !== coverImage)
-        : imageAssets;
+  const coverImage = content.cover_image_url || imageAssets[0]?.url || null;
+  const galleryImages = coverImage
+    ? imageAssets.filter((asset) => asset.url !== coverImage)
+    : imageAssets;
 
-    return (
-        <article
-            className="min-w-0 overflow-x-hidden break-words rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 shadow-2xl sm:p-8"
-            style={{ overflowWrap: "anywhere", wordBreak: "break-word" }}
-        >
-            <div className="flex flex-wrap items-center gap-2 text-xs uppercase tracking-[0.22em] text-white/45">
-                <span>{content.content_type}</span>
-                <span>•</span>
-                <span>{content.reading_time_minutes} min read</span>
-                {content.requires_partnership ? (
-                    <>
-                        <span>•</span>
-                        <span>Partner content</span>
-                    </>
-                ) : null}
+  return (
+    <article
+      className="min-w-0 overflow-x-hidden break-words rounded-[2rem] border border-border bg-surface p-6 shadow-2xl sm:p-8"
+      style={{ overflowWrap: "anywhere", wordBreak: "break-word" }}
+    >
+      <div className="flex flex-wrap items-center gap-2 text-xs uppercase tracking-[0.22em] text-fg-dim">
+        <span>{content.content_type}</span>
+        <span>•</span>
+        <span>{content.reading_time_minutes} min read</span>
+        {content.requires_partnership ? (
+          <>
+            <span>•</span>
+            <span>Partner content</span>
+          </>
+        ) : null}
+      </div>
+
+      {coverImage ? (
+        <div className="mt-6">
+          <ResponsiveImage
+            src={coverImage}
+            alt={content.title}
+            priority
+            variant="cover"
+          />
+        </div>
+      ) : null}
+
+      <h1 className="font-display mt-5 text-4xl font-semibold tracking-tight sm:text-5xl">
+        {content.title}
+      </h1>
+
+      {content.excerpt ? (
+        <p className="mt-5 text-lg leading-8 text-fg-dim">{content.excerpt}</p>
+      ) : null}
+
+      <div className="mt-6 flex flex-col gap-3 border-t border-border pt-5 text-sm text-fg-dim sm:flex-row sm:items-center sm:justify-between">
+        <span>By {content.author.full_name}</span>
+        <span>
+          {content.published_at
+            ? formatRelativeTime(content.published_at)
+            : formatRelativeTime(content.created_at)}
+        </span>
+      </div>
+
+      {!content.has_access ? (
+        <section className="mt-6 rounded-[2rem] border border-accent/30 bg-accent-soft p-6">
+          <h2 className="font-display text-xl font-semibold text-accent-text">
+            Partner-only content
+          </h2>
+
+          <p className="mt-3 text-sm leading-6 text-fg-dim">
+            {content.preview_body}
+          </p>
+
+          <p className="mt-4 text-sm text-fg-dim">
+            Become a partner to read the full piece and support creators,
+            education, and community storytelling.
+          </p>
+
+          <Link
+            href="/partnership"
+            className="mt-5 inline-flex rounded-2xl bg-accent px-4 py-3 text-sm font-semibold text-on-accent"
+          >
+            Become a partner
+          </Link>
+        </section>
+      ) : (
+        <>
+          <section className="markdown-body mt-8 max-w-none overflow-x-hidden">
+            <div className="min-w-0 break-words [overflow-wrap:anywhere] [word-break:break-word]">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {content.body}
+              </ReactMarkdown>
             </div>
+          </section>
 
-            {coverImage ? (
-                <div className="mt-6">
-                    <ResponsiveImage
-                        src={coverImage}
-                        alt={content.title}
-                        priority
-                        variant="cover"
-                    />
-                </div>
-            ) : null}
-
-            <h1 className="mt-5 text-4xl font-semibold tracking-tight sm:text-5xl">
-                {content.title}
-            </h1>
-
-            {content.excerpt ? (
-                <p className="mt-5 text-lg leading-8 text-white/65">
-                    {content.excerpt}
+          {galleryImages.length > 0 ? (
+            <section className="mt-10 space-y-4">
+              <div>
+                <p className="text-xs uppercase tracking-[0.22em] text-fg-dim">
+                  Images
                 </p>
-            ) : null}
+                <h2 className="font-display mt-2 text-2xl font-semibold text-fg">
+                  Attached visuals
+                </h2>
+              </div>
 
-            <div className="mt-6 flex flex-col gap-3 border-t border-white/10 pt-5 text-sm text-white/50 sm:flex-row sm:items-center sm:justify-between">
-                <span>By {content.author.full_name}</span>
-                <span>
-                    {content.published_at
-                        ? formatRelativeTime(content.published_at)
-                        : formatRelativeTime(content.created_at)}
-                </span>
-            </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                {galleryImages.map((asset) => (
+                  <ResponsiveImage
+                    key={asset.id}
+                    src={asset.url}
+                    alt={asset.filename || content.title}
+                    caption={asset.filename}
+                    variant="gallery"
+                  />
+                ))}
+              </div>
+            </section>
+          ) : null}
 
-            {!content.has_access ? (
-                <section className="mt-6 rounded-[2rem] border border-amber-400/20 bg-amber-400/10 p-6">
-                    <h2 className="text-xl font-semibold text-amber-100">
-                        Partner-only content
-                    </h2>
+          {fileAssets.length > 0 ? (
+            <section className="mt-10 space-y-4">
+              <div>
+                <p className="text-xs uppercase tracking-[0.22em] text-fg-dim">
+                  Files
+                </p>
+                <h2 className="font-display mt-2 text-2xl font-semibold text-fg">
+                  Downloadable resources
+                </h2>
+              </div>
 
-                    <p className="mt-3 text-sm leading-6 text-amber-100/75">
-                        {content.preview_body}
-                    </p>
+              <div className="grid gap-3">
+                {fileAssets.map((asset) => (
+                  <a
+                    key={asset.id}
+                    href={asset.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center justify-between gap-4 rounded-[1.5rem] border border-border bg-surface-2 px-4 py-4 transition hover:bg-surface"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-fg">
+                        {getFileLabel(asset)}
+                      </p>
+                      {asset.mime_type ? (
+                        <p className="mt-1 text-xs text-fg-dim">
+                          {asset.mime_type}
+                        </p>
+                      ) : null}
+                    </div>
 
-                    <p className="mt-4 text-sm text-amber-100/70">
-                        Become a partner to read the full piece and support creators,
-                        education, and community storytelling.
-                    </p>
-
-                    <Link
-                        href="/partnership"
-                        className="mt-5 inline-flex rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-black"
-                    >
-                        Become a partner
-                    </Link>
-                </section>
-            ) : (
-                <>
-                    <section className="prose prose-invert mt-8 max-w-none overflow-x-hidden">
-                        <div className="min-w-0 break-words [overflow-wrap:anywhere] [word-break:break-word]">
-                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{content.body}</ReactMarkdown>
-                        </div>
-                    </section>
-
-                    {galleryImages.length > 0 ? (
-                        <section className="mt-10 space-y-4">
-                            <div>
-                                <p className="text-xs uppercase tracking-[0.22em] text-white/40">
-                                    Images
-                                </p>
-                                <h2 className="mt-2 text-2xl font-semibold text-white">
-                                    Attached visuals
-                                </h2>
-                            </div>
-
-                            <div className="grid gap-4 sm:grid-cols-2">
-                                {galleryImages.map((asset) => (
-                                    <ResponsiveImage
-                                        key={asset.id}
-                                        src={asset.url}
-                                        alt={asset.filename || content.title}
-                                        caption={asset.filename}
-                                        variant="gallery"
-                                    />
-                                ))}
-                            </div>
-                        </section>
-                    ) : null}
-
-                    {fileAssets.length > 0 ? (
-                        <section className="mt-10 space-y-4">
-                            <div>
-                                <p className="text-xs uppercase tracking-[0.22em] text-white/40">
-                                    Files
-                                </p>
-                                <h2 className="mt-2 text-2xl font-semibold text-white">
-                                    Downloadable resources
-                                </h2>
-                            </div>
-
-                            <div className="grid gap-3">
-                                {fileAssets.map((asset) => (
-                                    <a
-                                        key={asset.id}
-                                        href={asset.url}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        className="flex items-center justify-between gap-4 rounded-[1.5rem] border border-white/10 bg-black/20 px-4 py-4 transition hover:bg-white/5"
-                                    >
-                                        <div className="min-w-0">
-                                            <p className="truncate text-sm font-medium text-white">
-                                                {getFileLabel(asset)}
-                                            </p>
-                                            {asset.mime_type ? (
-                                                <p className="mt-1 text-xs text-white/40">
-                                                    {asset.mime_type}
-                                                </p>
-                                            ) : null}
-                                        </div>
-
-                                        <span className="shrink-0 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/70">
-                                            Open
-                                        </span>
-                                    </a>
-                                ))}
-                            </div>
-                        </section>
-                    ) : null}
-                </>
-            )}
-        </article>
-    );
+                    <span className="shrink-0 rounded-full border border-border bg-surface px-3 py-1 text-xs text-fg-dim">
+                      Open
+                    </span>
+                  </a>
+                ))}
+              </div>
+            </section>
+          ) : null}
+        </>
+      )}
+    </article>
+  );
 }

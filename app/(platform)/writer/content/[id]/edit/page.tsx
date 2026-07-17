@@ -9,7 +9,11 @@ import RoleGuard from "@/components/auth/RoleGuard";
 import EditorToolbar from "@/components/editor/EditorToolbar";
 import LoadingState from "@/components/ui/LoadingState";
 import { api, ApiError } from "@/lib/api";
-import type { ContentStatus, ContentType, ContentVisibility } from "@/lib/types";
+import type {
+  ContentStatus,
+  ContentType,
+  ContentVisibility,
+} from "@/lib/types";
 
 import { AccordionPanel } from "@/components/editor/AccordionPanel";
 import { LabeledSelect } from "@/components/editor/LabeledSelect";
@@ -24,13 +28,34 @@ import { useContentForm } from "@/hooks/useContentForm";
 // ─── Static option lists ──────────────────────────────────────────────────────
 
 const contentTypes: ContentType[] = [
-  "ARTICLE", "STORY", "FICTION", "POEM", "FAITH", "EDUCATION", "CHILDREN",
-  "NEWS", "AUDIO", "WRITING_TIPS", "SELF_IMPROVEMENT", "RELATIONSHIP",
-  "MONEY_FINANCE", "MEDICINE", "PSYCHOLOGY", "MENTAL_HEALTH", "HUMOR",
-  "WOMEN", "FITNESS", "SELF_AWARENESS", "PARENTING",
+  "ARTICLE",
+  "STORY",
+  "FICTION",
+  "POEM",
+  "FAITH",
+  "EDUCATION",
+  "CHILDREN",
+  "NEWS",
+  "AUDIO",
+  "WRITING_TIPS",
+  "SELF_IMPROVEMENT",
+  "RELATIONSHIP",
+  "MONEY_FINANCE",
+  "MEDICINE",
+  "PSYCHOLOGY",
+  "MENTAL_HEALTH",
+  "HUMOR",
+  "WOMEN",
+  "FITNESS",
+  "SELF_AWARENESS",
+  "PARENTING",
 ];
 
-const visibilityOptions: ContentVisibility[] = ["PUBLIC", "PARTNERS_ONLY", "PRIVATE"];
+const visibilityOptions: ContentVisibility[] = [
+  "PUBLIC",
+  "PARTNERS_ONLY",
+  "PRIVATE",
+];
 
 function canEdit(status: ContentStatus) {
   return status === "DRAFT" || status === "REJECTED";
@@ -88,7 +113,11 @@ function WriterContentEditor({
   const submittable = canSubmit(content.status);
 
   // ── Shared primitives from ADR-1, seeded with server data ──────────────
-  const accordion = useAccordionGroup(["title", "attachments", "settings"] as const);
+  const accordion = useAccordionGroup([
+    "title",
+    "attachments",
+    "settings",
+  ] as const);
 
   const form = useContentForm(
     {
@@ -112,7 +141,10 @@ function WriterContentEditor({
   const imageSelection = useFileSelection();
   const fileSelection = useFileSelection();
 
-  const wordCount = useMemo(() => countWords(form.values.body), [form.values.body]);
+  const wordCount = useMemo(
+    () => countWords(form.values.body),
+    [form.values.body],
+  );
   const readingMinutes = Math.max(1, Math.round(wordCount / 220));
   const charCount = form.values.body.length;
 
@@ -134,7 +166,9 @@ function WriterContentEditor({
     onSuccess: () => {
       form.markClean();
       queryClient.invalidateQueries({ queryKey: ["writer", "content"] });
-      queryClient.invalidateQueries({ queryKey: ["writer", "content", contentId] });
+      queryClient.invalidateQueries({
+        queryKey: ["writer", "content", contentId],
+      });
       onSaved();
     },
   });
@@ -148,7 +182,9 @@ function WriterContentEditor({
     mutationFn: () => api.submitContentForReview(contentId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["writer", "content"] });
-      queryClient.invalidateQueries({ queryKey: ["writer", "content", contentId] });
+      queryClient.invalidateQueries({
+        queryKey: ["writer", "content", contentId],
+      });
       onSubmitted();
     },
   });
@@ -212,68 +248,72 @@ function WriterContentEditor({
       />
 
       {!editable ? (
-        <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
-          This content is currently <strong>{content.status}</strong>. Only draft or
-          rejected content can be edited directly.
+        <div className="rounded-2xl border border-accent/30 bg-accent-soft px-4 py-3 text-sm text-accent-text">
+          This content is currently <strong>{content.status}</strong>. Only
+          draft or rejected content can be edited directly.
         </div>
       ) : null}
 
-      {updateMutation.isError || uploadAssetsMutation.isError || submitMutation.isError ? (
-        <div className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+      {updateMutation.isError ||
+      uploadAssetsMutation.isError ||
+      submitMutation.isError ? (
+        <div className="rounded-2xl border border-danger/30 bg-danger-soft px-4 py-3 text-sm text-danger">
           {actionError}
           {uploadAssetsMutation.isError &&
-            (imageSelection.files.length > 0 || fileSelection.files.length > 0) ? (
-            <p className="mt-2 text-xs text-red-200/70">
-              Your selected files are still attached — submit the form again to retry the upload.
+          (imageSelection.files.length > 0 ||
+            fileSelection.files.length > 0) ? (
+            <p className="mt-2 text-xs text-danger">
+              Your selected files are still attached — submit the form again to
+              retry the upload.
             </p>
           ) : null}
         </div>
       ) : null}
 
       {updateMutation.isSuccess ? (
-        <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+        <div className="rounded-2xl border border-success/30 bg-success-soft px-4 py-3 text-sm text-success">
           Changes saved.
         </div>
       ) : null}
 
       {submitMutation.isSuccess ? (
-        <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+        <div className="rounded-2xl border border-success/30 bg-success-soft px-4 py-3 text-sm text-success">
           Content submitted for review.
         </div>
       ) : null}
 
       <form
         onSubmit={handleSave}
-        className="grid gap-6 rounded-[2rem] border border-white/10 bg-white/[0.04] p-5 2xl:grid-cols-[minmax(0,1fr)_minmax(280px,360px)]"
+        className="grid gap-6 rounded-[2rem] border border-border bg-surface p-5 2xl:grid-cols-[minmax(0,1fr)_minmax(280px,360px)]"
       >
         {/* Main column */}
         <div className="min-w-0 space-y-5">
-          <div className="rounded-[2rem] border border-white/10 bg-black/20 p-5">
+          <div className="rounded-[2rem] border border-border bg-surface-2 p-5">
             <AccordionPanel
               panelRef={accordion.refFor("title")}
               title="Title, slug & excerpt"
               isOpen={accordion.isOpen("title")}
               onToggle={() => accordion.toggle("title")}
             >
-              <div className="rounded-[1.5rem] border border-white/10 bg-black/20 p-4">
-                <label className="text-sm text-white/70">Title</label>
+              <div className="rounded-[1.5rem] border border-border bg-surface-2 p-4">
+                <label className="text-sm text-fg-dim">Title</label>
                 <input
                   value={form.values.title}
                   onChange={(e) => form.set("title", e.target.value)}
                   disabled={!editable}
-                  className="mt-2 w-full min-w-0 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none disabled:opacity-60"
+                  className="mt-2 w-full min-w-0 rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-fg outline-none disabled:opacity-60"
                   required
                 />
               </div>
 
-              <div className="rounded-[1.5rem] border border-white/10 bg-black/20 p-4">
+              <div className="rounded-[1.5rem] border border-border bg-surface-2 p-4">
                 <div className="flex items-center justify-between gap-3">
-                  <label className="text-sm text-white/70">Slug</label>
+                  <label className="text-sm text-fg-dim">Slug</label>
                   <button
                     type="button"
                     onClick={slugField.onResetToAuto}
                     disabled={!editable}
-                    className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/60 hover:bg-white/10 hover:text-white disabled:opacity-60"
+                    className="rounded-full border border-border bg-surface px-3 py-1 text-xs text-fg-dim hover:bg-surface-2 hover:text-fg disabled:opacity-60"
                   >
                     Auto-fill
                   </button>
@@ -282,33 +322,34 @@ function WriterContentEditor({
                   value={slugField.slug}
                   onChange={(e) => slugField.onSlugChange(e.target.value)}
                   disabled={!editable}
-                  className="mt-2 w-full min-w-0 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none disabled:opacity-60"
+                  className="mt-2 w-full min-w-0 rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-fg outline-none disabled:opacity-60"
                   required
                 />
                 {content.status === "PUBLISHED" ? (
-                  <p className="mt-2 text-xs text-amber-200/70">
-                    Changing the slug on published content breaks existing shared links.
+                  <p className="mt-2 text-xs text-fg-dim">
+                    Changing the slug on published content breaks existing
+                    shared links.
                   </p>
                 ) : null}
               </div>
 
-              <div className="rounded-[1.5rem] border border-white/10 bg-black/20 p-4">
-                <label className="text-sm text-white/70">Excerpt</label>
+              <div className="rounded-[1.5rem] border border-border bg-surface-2 p-4">
+                <label className="text-sm text-fg-dim">Excerpt</label>
                 <textarea
                   value={form.values.excerpt}
                   onChange={(e) => form.set("excerpt", e.target.value)}
                   disabled={!editable}
                   rows={3}
-                  className="mt-2 w-full min-w-0 resize-none rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm leading-6 text-white outline-none disabled:opacity-60"
+                  className="mt-2 w-full min-w-0 resize-none rounded-2xl border border-border bg-surface px-4 py-3 text-sm leading-6 text-fg outline-none disabled:opacity-60"
                 />
               </div>
             </AccordionPanel>
 
             {/* Body editor */}
-            <div className="mt-5 rounded-[1.5rem] border border-white/10 bg-black/20 p-4 sm:p-5">
+            <div className="mt-5 rounded-[1.5rem] border border-border bg-surface-2 p-4 sm:p-5">
               <div className="min-w-0">
-                <label className="text-sm text-white/70">Body</label>
-                <p className="mt-1 text-xs text-white/35">
+                <label className="text-sm text-fg-dim">Body</label>
+                <p className="mt-1 text-xs text-fg-dim">
                   The editor stays open and full-width on mobile and laptops.
                 </p>
               </div>
@@ -330,7 +371,7 @@ function WriterContentEditor({
                 isOpen={accordion.isOpen("attachments")}
                 onToggle={() => accordion.toggle("attachments")}
               >
-                <div className="grid gap-4 rounded-[1.5rem] border border-white/10 bg-white/[0.03] p-4 sm:grid-cols-2">
+                <div className="grid gap-4 rounded-[1.5rem] border border-border bg-surface p-4 sm:grid-cols-2">
                   <FileDropField
                     label="Add images"
                     helperText="Images can be attached for readers to see in the content."
@@ -359,15 +400,21 @@ function WriterContentEditor({
                 onChange={(e) => form.set("body", e.target.value)}
                 disabled={!editable}
                 rows={20}
-                className="mt-5 min-h-[55vh] w-full max-w-full min-w-0 resize-y rounded-[1.75rem] border border-white/10 bg-[#0d1016] px-5 py-5 text-sm leading-8 text-white outline-none transition placeholder:text-white/20 focus:border-white/30 disabled:opacity-60 sm:min-h-[65vh] md:min-h-[72vh]"
+                className="mt-5 min-h-[55vh] w-full max-w-full min-w-0 resize-y rounded-[1.75rem] border border-border bg-surface px-5 py-5 text-sm leading-8 text-fg outline-none transition placeholder:text-fg-dim/70 focus:border-accent/40 disabled:opacity-60 sm:min-h-[65vh] md:min-h-[72vh]"
                 placeholder="Write your piece here…"
               />
             </div>
 
-            <div className="mt-3 flex flex-wrap gap-2 text-xs text-white/45">
-              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">{wordCount} words</span>
-              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">{readingMinutes} min read</span>
-              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">{charCount} characters</span>
+            <div className="mt-3 flex flex-wrap gap-2 text-xs text-fg-dim">
+              <span className="rounded-full border border-border bg-surface px-3 py-1">
+                {wordCount} words
+              </span>
+              <span className="rounded-full border border-border bg-surface px-3 py-1">
+                {readingMinutes} min read
+              </span>
+              <span className="rounded-full border border-border bg-surface px-3 py-1">
+                {charCount} characters
+              </span>
             </div>
           </div>
         </div>
@@ -403,7 +450,10 @@ function WriterContentEditor({
                 value={form.values.categoryId}
                 onChange={(v) => form.set("categoryId", v)}
                 emptyOption="No category"
-                options={categories.map((c) => ({ value: c.id, label: c.name }))}
+                options={categories.map((c) => ({
+                  value: c.id,
+                  label: c.name,
+                }))}
                 disabled={!editable}
               />
               <LabeledSelect
@@ -416,7 +466,7 @@ function WriterContentEditor({
               />
             </div>
 
-            <label className="flex min-w-0 items-start gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/75">
+            <label className="flex min-w-0 items-start gap-3 rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-fg-dim">
               <input
                 type="checkbox"
                 checked={form.values.isPremium}
@@ -425,8 +475,10 @@ function WriterContentEditor({
                 className="mt-1 shrink-0"
               />
               <span className="min-w-0">
-                <span className="block font-medium text-white">Mark as partner-only / premium content</span>
-                <span className="mt-1 block break-words text-xs leading-5 text-white/40">
+                <span className="block font-medium text-fg">
+                  Mark as partner-only / premium content
+                </span>
+                <span className="mt-1 block break-words text-xs leading-5 text-fg-dim">
                   Use this for exclusive or partnership-supported material.
                 </span>
               </span>
@@ -441,12 +493,16 @@ function WriterContentEditor({
             excerpt={form.values.excerpt}
           />
 
-          <div className="rounded-[2rem] border border-white/10 bg-black/20 p-5">
+          <div className="rounded-[2rem] border border-border bg-surface-2 p-5">
             <div className="flex flex-col gap-3">
               <button
                 type="submit"
-                disabled={!editable || updateMutation.isPending || uploadAssetsMutation.isPending}
-                className="rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-black disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={
+                  !editable ||
+                  updateMutation.isPending ||
+                  uploadAssetsMutation.isPending
+                }
+                className="rounded-2xl bg-accent px-4 py-3 text-sm font-semibold text-on-accent disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {updateMutation.isPending
                   ? "Saving…"
@@ -460,7 +516,7 @@ function WriterContentEditor({
                   type="button"
                   onClick={() => submitMutation.mutate()}
                   disabled={submitMutation.isPending}
-                  className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-white/80 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="rounded-2xl border border-border bg-surface px-4 py-3 text-sm font-semibold text-fg-dim transition hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   {submitLabel}
                 </button>
@@ -486,7 +542,10 @@ export default function WriterContentEditPage() {
     enabled: Boolean(contentId),
   });
 
-  const categoriesQuery = useQuery({ queryKey: ["categories"], queryFn: api.categories });
+  const categoriesQuery = useQuery({
+    queryKey: ["categories"],
+    queryFn: api.categories,
+  });
   const hubsQuery = useQuery({ queryKey: ["hubs"], queryFn: api.hubs });
 
   const moderationQuery = useQuery({
@@ -496,17 +555,21 @@ export default function WriterContentEditPage() {
   });
 
   const moderationNote = useMemo(
-    () => moderationQuery.data?.find((log) => log.action === "REJECTED")?.note ?? null,
+    () =>
+      moderationQuery.data?.find((log) => log.action === "REJECTED")?.note ??
+      null,
     [moderationQuery.data],
   );
 
   return (
     <RoleGuard allowedRoles={["WRITER", "TEACHER", "ADMIN"]}>
       <div className="mx-auto max-w-6xl space-y-8 overflow-x-hidden px-3 pb-10 sm:px-0">
-        {contentQuery.isLoading ? <LoadingState label="Loading content…" /> : null}
+        {contentQuery.isLoading ? (
+          <LoadingState label="Loading content…" />
+        ) : null}
 
         {contentQuery.isError ? (
-          <div className="rounded-[2rem] border border-red-500/30 bg-red-500/10 p-6 text-red-100">
+          <div className="rounded-[2rem] border border-danger/30 bg-danger-soft p-6 text-danger">
             Could not load this content.
           </div>
         ) : null}
@@ -519,12 +582,20 @@ export default function WriterContentEditPage() {
             hubs={hubsQuery.data ?? []}
             moderationNote={moderationNote}
             onSaved={() => {
-              queryClient.invalidateQueries({ queryKey: ["writer", "content"] });
-              queryClient.invalidateQueries({ queryKey: ["writer", "content", contentId] });
+              queryClient.invalidateQueries({
+                queryKey: ["writer", "content"],
+              });
+              queryClient.invalidateQueries({
+                queryKey: ["writer", "content", contentId],
+              });
             }}
             onSubmitted={() => {
-              queryClient.invalidateQueries({ queryKey: ["writer", "content"] });
-              queryClient.invalidateQueries({ queryKey: ["writer", "content", contentId] });
+              queryClient.invalidateQueries({
+                queryKey: ["writer", "content"],
+              });
+              queryClient.invalidateQueries({
+                queryKey: ["writer", "content", contentId],
+              });
             }}
           />
         ) : null}

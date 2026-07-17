@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { ReactNode, useEffect } from "react";
 
 import { api } from "@/lib/api";
-import { getAccessToken, saveAuthSession } from "@/lib/auth";
+import { getAccessToken, saveAuthSession, clearAuthSession } from "@/lib/auth";
 
 export default function AuthGuard({ children }: { children: ReactNode }) {
     const router = useRouter();
@@ -20,12 +20,15 @@ export default function AuthGuard({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         if (!token) {
+            clearAuthSession();
             router.replace("/login");
         }
     }, [router, token]);
 
     useEffect(() => {
         if (isError) {
+            // clear local session so UI (sidebar, topbar) updates immediately
+            clearAuthSession();
             router.replace("/login");
         }
     }, [isError, router]);

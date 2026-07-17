@@ -99,44 +99,47 @@ export default function SearchPage() {
 
     return (
         <div className="space-y-8">
-            <section className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 shadow-2xl">
-                <p className="text-xs uppercase tracking-[0.28em] text-white/40">
-                    Search
-                </p>
+            <section className="overflow-hidden rounded-[2rem] border border-border bg-surface shadow-2xl">
+                <div className="kanga" />
+                <div className="p-6">
+                    <p className="text-xs uppercase tracking-[0.28em] text-accent">
+                        Search
+                    </p>
 
-                <h1 className="mt-3 text-3xl font-semibold tracking-tight">
-                    Find content, writers, hubs, and learning resources.
-                </h1>
+                    <h1 className="font-display mt-3 text-3xl tracking-tight text-fg">
+                        Find content, writers, hubs, and learning resources.
+                    </h1>
 
-                <p className="mt-4 max-w-2xl text-sm leading-6 text-white/60">
-                    Search the ecosystem by story, poem, faith topic, curriculum, writer,
-                    hub, category, or children’s content.
-                </p>
+                    <p className="mt-4 max-w-2xl text-sm leading-6 text-fg-dim">
+                        Search the ecosystem by story, poem, faith topic, curriculum, writer,
+                        hub, category, or children’s content.
+                    </p>
+                </div>
             </section>
 
             <form
                 onSubmit={handleSubmit}
-                className="grid gap-3 rounded-[2rem] border border-white/10 bg-white/[0.04] p-5 md:grid-cols-[1fr_220px_auto]"
+                className="grid gap-3 rounded-[2rem] border border-border bg-surface p-5 md:grid-cols-[1fr_220px_auto]"
             >
-                <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-                    <Search className="h-4 w-4 text-white/40" />
+                <div className="flex items-center gap-3 rounded-2xl border border-border bg-surface px-4 py-3">
+                    <Search className="h-4 w-4 text-fg-dim" />
 
                     <input
                         value={q}
                         onChange={(event) => setQ(event.target.value)}
                         placeholder="Search faith, poetry, CBC, writers, hubs..."
-                        className="w-full bg-transparent text-sm text-white outline-none placeholder:text-white/35"
+                        className="w-full bg-transparent text-sm text-fg outline-none placeholder:text-fg-dim/70"
                     />
                 </div>
 
                 <select
                     value={type}
                     onChange={(event) => setType(event.target.value as ContentType | "")}
-                    className="rounded-2xl border border-white/10 bg-[#111113] px-4 py-3 text-sm text-white outline-none"
+                    className="rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-fg outline-none"
                 >
                     {typeOptions.map((option) => (
                         <option
-                            className="bg-[#111113] text-white"
+                            className="bg-surface text-fg"
                             key={option || "ALL"}
                             value={option}
                         >
@@ -147,14 +150,14 @@ export default function SearchPage() {
 
                 <button
                     type="submit"
-                    className="rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-black"
+                    className="rounded-2xl bg-accent px-5 py-3 text-sm font-semibold text-on-accent"
                 >
                     Search
                 </button>
             </form>
 
             {activeQuery.length > 0 && activeQuery.length < 2 ? (
-                <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+                <div className="rounded-2xl border border-accent/30 bg-accent-soft px-4 py-3 text-sm text-accent">
                     Type at least 2 characters to search.
                 </div>
             ) : null}
@@ -162,20 +165,20 @@ export default function SearchPage() {
             {isLoading ? <LoadingState label="Searching..." /> : null}
 
             {isError ? (
-                <div className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                <div className="rounded-2xl border border-danger/30 bg-danger-soft px-4 py-3 text-sm text-danger">
                     Search failed. Confirm the backend search endpoint is running.
                 </div>
             ) : null}
 
             {activeQuery.length >= 2 && activeType ? (
-                <div className="text-sm text-white/45">
+                <div className="text-sm text-fg-dim">
                     {contentOnlyQuery.data?.total ?? 0} content result(s) for “
                     {activeQuery}” in {activeType}
                 </div>
             ) : null}
 
             {activeQuery.length >= 2 && !activeType && globalQuery.data ? (
-                <div className="text-sm text-white/45">
+                <div className="text-sm text-fg-dim">
                     {totalGroupedResults} ecosystem result(s) for “{activeQuery}”
                 </div>
             ) : null}
@@ -203,7 +206,7 @@ export default function SearchPage() {
                 <div className="space-y-8">
                     {globalQuery.data.content.length > 0 ? (
                         <section className="space-y-4">
-                            <h2 className="text-2xl font-semibold">Content</h2>
+                            <h2 className="font-display text-2xl font-semibold">Content</h2>
                             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                                 {globalQuery.data.content.map((content) => (
                                     <ContentCard key={content.id} content={content} />
@@ -214,22 +217,22 @@ export default function SearchPage() {
 
                     {globalQuery.data.writers.length > 0 ? (
                         <section className="space-y-4">
-                            <h2 className="text-2xl font-semibold">Writers</h2>
+                            <h2 className="font-display text-2xl font-semibold">Writers</h2>
 
                             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                                 {globalQuery.data.writers.map((writer) => (
                                     <Link
                                         key={writer.id}
                                         href={`/writers/${writer.id}`}
-                                        className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-5 transition hover:bg-white/[0.07]"
+                                        className="rounded-[2rem] border border-border bg-surface p-5 transition hover:bg-surface-2"
                                     >
-                                        <p className="text-xs uppercase tracking-[0.2em] text-white/40">
+                                        <p className="text-xs uppercase tracking-[0.2em] text-fg-dim">
                                             {writer.role}
                                         </p>
-                                        <h3 className="mt-3 text-xl font-semibold">
+                                        <h3 className="font-display mt-3 text-xl font-semibold">
                                             {writer.full_name}
                                         </h3>
-                                        <p className="mt-2 text-sm text-white/45">
+                                        <p className="mt-2 text-sm text-fg-dim">
                                             {writer.followers_count} followers •{" "}
                                             {writer.published_count} posts
                                         </p>
@@ -241,18 +244,18 @@ export default function SearchPage() {
 
                     {globalQuery.data.hubs.length > 0 ? (
                         <section className="space-y-4">
-                            <h2 className="text-2xl font-semibold">Hubs</h2>
+                            <h2 className="font-display text-2xl font-semibold">Hubs</h2>
 
                             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                                 {globalQuery.data.hubs.map((hub) => (
                                     <Link
                                         key={hub.id}
                                         href={`/hubs/${hub.slug}?id=${hub.id}`}
-                                        className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-5 transition hover:bg-white/[0.07]"
+                                        className="rounded-[2rem] border border-border bg-surface p-5 transition hover:bg-surface-2"
                                     >
-                                        <h3 className="text-xl font-semibold">{hub.name}</h3>
+                                        <h3 className="font-display text-xl font-semibold">{hub.name}</h3>
                                         {hub.description ? (
-                                            <p className="mt-3 line-clamp-3 text-sm leading-6 text-white/60">
+                                            <p className="mt-3 line-clamp-3 text-sm leading-6 text-fg-dim">
                                                 {hub.description}
                                             </p>
                                         ) : null}
@@ -264,18 +267,18 @@ export default function SearchPage() {
 
                     {globalQuery.data.categories.length > 0 ? (
                         <section className="space-y-4">
-                            <h2 className="text-2xl font-semibold">Categories</h2>
+                            <h2 className="font-display text-2xl font-semibold">Categories</h2>
 
                             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                                 {globalQuery.data.categories.map((category) => (
                                     <Link
                                         key={category.id}
                                         href={`/categories/${category.id}`}
-                                        className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-5 transition hover:bg-white/[0.07]"
+                                        className="rounded-[2rem] border border-border bg-surface p-5 transition hover:bg-surface-2"
                                     >
-                                        <h3 className="text-xl font-semibold">{category.name}</h3>
+                                        <h3 className="font-display text-xl font-semibold">{category.name}</h3>
                                         {category.description ? (
-                                            <p className="mt-3 line-clamp-3 text-sm leading-6 text-white/60">
+                                            <p className="mt-3 line-clamp-3 text-sm leading-6 text-fg-dim">
                                                 {category.description}
                                             </p>
                                         ) : null}
@@ -287,7 +290,7 @@ export default function SearchPage() {
 
                     {globalQuery.data.education_resources.length > 0 ? (
                         <section className="space-y-4">
-                            <h2 className="text-2xl font-semibold">Education resources</h2>
+                            <h2 className="font-display text-2xl font-semibold">Education resources</h2>
 
                             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                                 {globalQuery.data.education_resources.map((resource) => (
@@ -298,15 +301,15 @@ export default function SearchPage() {
                                                 ? `/read/${resource.content.slug}`
                                                 : "/education"
                                         }
-                                        className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-5 transition hover:bg-white/[0.07]"
+                                        className="rounded-[2rem] border border-border bg-surface p-5 transition hover:bg-surface-2"
                                     >
-                                        <p className="text-xs uppercase tracking-[0.2em] text-white/40">
+                                        <p className="text-xs uppercase tracking-[0.2em] text-fg-dim">
                                             {resource.curriculum} • {resource.resource_type}
                                         </p>
-                                        <h3 className="mt-3 text-xl font-semibold">
+                                        <h3 className="font-display mt-3 text-xl font-semibold">
                                             {resource.content?.title ?? "Education resource"}
                                         </h3>
-                                        <p className="mt-2 text-sm text-white/45">
+                                        <p className="mt-2 text-sm text-fg-dim">
                                             {[resource.grade_level, resource.subject]
                                                 .filter(Boolean)
                                                 .join(" • ")}
@@ -319,7 +322,7 @@ export default function SearchPage() {
 
                     {globalQuery.data.children_content.length > 0 ? (
                         <section className="space-y-4">
-                            <h2 className="text-2xl font-semibold">Children’s library</h2>
+                            <h2 className="font-display text-2xl font-semibold">Children’s library</h2>
 
                             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                                 {globalQuery.data.children_content.map((item) => (
@@ -330,12 +333,12 @@ export default function SearchPage() {
                                                 ? `/read/${item.content.slug}`
                                                 : "/children"
                                         }
-                                        className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-5 transition hover:bg-white/[0.07]"
+                                        className="rounded-[2rem] border border-border bg-surface p-5 transition hover:bg-surface-2"
                                     >
-                                        <p className="text-xs uppercase tracking-[0.2em] text-white/40">
+                                        <p className="text-xs uppercase tracking-[0.2em] text-fg-dim">
                                             {item.age_group}
                                         </p>
-                                        <h3 className="mt-3 text-xl font-semibold">
+                                        <h3 className="font-display mt-3 text-xl font-semibold">
                                             {item.content?.title ?? "Children content"}
                                         </h3>
                                     </Link>
