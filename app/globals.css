@@ -13,6 +13,7 @@
 
   --accent: #e8a63b;
   --on-accent: #1c2027;
+  --accent-text: #8f5c15;
   --accent-soft: rgba(232, 166, 59, 0.12);
 
   --success: #2f7350;
@@ -27,6 +28,12 @@
   --sig-1: #e8a63b;
   --sig-2: #3a5a78;
   --sig-3: #4c9a6a;
+
+  /* For text painted over a photo + dark scrim (e.g. a cover-image hero).
+     Constant across themes because the scrim guarantees a dark backdrop
+     regardless of whether the site is in light or dark mode. */
+  --on-photo: #f5f1e6;
+  --on-photo-dim: rgba(245, 241, 230, 0.78);
 }
 
 /* ---------- Dark mode ---------- */
@@ -40,6 +47,7 @@
 
   --accent: #e8a63b;
   --on-accent: #17110a;
+  --accent-text: #e8a63b;
   --accent-soft: rgba(232, 166, 59, 0.14);
 
   --success: #5fb37f;
@@ -66,6 +74,7 @@
 
   --color-accent: var(--accent);
   --color-on-accent: var(--on-accent);
+  --color-accent-text: var(--accent-text);
   --color-accent-soft: var(--accent-soft);
 
   --color-success: var(--success);
@@ -75,6 +84,9 @@
   --color-danger-soft: var(--danger-soft);
 
   --color-info: var(--info);
+
+  --color-on-photo: var(--on-photo);
+  --color-on-photo-dim: var(--on-photo-dim);
 
   --font-sans: var(--font-worksans);
   --font-display: var(--font-fraunces);

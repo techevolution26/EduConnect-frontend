@@ -1,7 +1,7 @@
 export type ThemePreference = "system" | "light" | "dark";
 export type ResolvedTheme = "light" | "dark";
 
-export const THEME_STORAGE_KEY = "educonnect-theme";
+export const THEME_STORAGE_KEY = "GateWays-theme";
 
 export function getStoredThemePreference(): ThemePreference {
     if (typeof window === "undefined") return "system";

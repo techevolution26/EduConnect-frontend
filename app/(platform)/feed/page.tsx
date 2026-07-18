@@ -107,10 +107,10 @@ function QuickLink({
   return (
     <Link
       href={href}
-      className="group rounded-[1.5rem] border border-border bg-surface p-5 transition hover:border-accent/30 hover:bg-surface-2"
+      className="group rounded-[1.5rem] border border-border bg-surface p-5 transition hover:border-accent/40 hover:bg-accent/[0.06]"
     >
       <div className="flex items-start gap-3">
-        <div className="rounded-2xl border border-border bg-surface-2 p-3 text-fg-dim transition group-hover:bg-accent-soft group-hover:text-accent">
+        <div className="rounded-2xl border border-border bg-surface-2 p-3 text-fg-dim transition group-hover:bg-surface-2 group-hover:text-fg">
           <Icon className="h-5 w-5" />
         </div>
         <div className="min-w-0">
@@ -129,14 +129,12 @@ function QuickLink({
  */
 function GuestHero() {
   return (
-    <section className="relative grid gap-8 overflow-hidden rounded-[2rem] border border-border bg-surface p-6 sm:p-8 lg:grid-cols-[1.25fr_0.75fr] lg:items-end lg:p-10">
-      <div className="kanga" />
-
-      <div className="relative">
+    <section className="relative grid gap-8 lg:grid-cols-[1.25fr_0.75fr] lg:items-end">
+      <div>
         <p className="text-xs uppercase tracking-[0.28em] text-fg-dim">
           Reading ecosystem
         </p>
-        <h1 className="mt-3 max-w-4xl font-display text-4xl font-semibold tracking-tight text-fg sm:text-5xl lg:text-6xl">
+        <h1 className="font-display mt-3 max-w-4xl text-4xl font-semibold tracking-tight text-fg sm:text-5xl lg:text-6xl">
           Discover stories, lessons, faith, and community voices.
         </h1>
         <p className="mt-4 max-w-2xl text-sm leading-7 text-fg-dim sm:text-base">
@@ -146,19 +144,19 @@ function GuestHero() {
         <div className="mt-6 flex flex-wrap gap-3">
           <Link
             href="/register"
-            className="rounded-2xl bg-accent px-4 py-3 text-sm font-semibold text-on-accent transition hover:opacity-90"
+            className="rounded-2xl bg-accent px-4 py-3 text-sm font-semibold text-on-accent transition hover:scale-[1.01] hover:opacity-90"
           >
             Join the community
           </Link>
           <Link
             href="/login"
-            className="rounded-2xl border border-border bg-surface-2 px-4 py-3 text-sm text-fg-dim transition hover:text-fg"
+            className="rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-fg-dim transition hover:bg-surface-2"
           >
             Login
           </Link>
           <Link
             href="/search"
-            className="inline-flex items-center gap-2 rounded-2xl border border-border bg-surface-2 px-4 py-3 text-sm text-fg-dim transition hover:text-fg"
+            className="inline-flex items-center gap-2 rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-fg-dim transition hover:bg-surface-2"
           >
             <Search className="h-4 w-4" />
             Search ecosystem
@@ -166,9 +164,9 @@ function GuestHero() {
         </div>
       </div>
 
-      <div className="relative rounded-[2rem] border border-border bg-surface-2 p-5 backdrop-blur">
+      <div className="rounded-[2rem] border border-border bg-surface-2 p-5">
         <div className="flex items-center gap-3">
-          <Sparkles className="h-5 w-5 text-accent" />
+          <Sparkles className="h-5 w-5 text-accent-text/80" />
           <h2 className="font-display font-semibold text-fg">
             What you can explore
           </h2>
@@ -199,14 +197,12 @@ function GuestHero() {
           ].map(({ label, value, helper }) => (
             <div
               key={label}
-              className="rounded-[1.25rem] border border-border bg-surface p-3"
+              className="rounded-[1.25rem] border border-border bg-surface-2 p-3"
             >
               <p className="text-[10px] uppercase tracking-[0.2em] text-fg-dim">
                 {label}
               </p>
-              <p className="mt-1 font-display text-base font-semibold text-fg">
-                {value}
-              </p>
+              <p className="mt-1 text-base font-semibold text-fg">{value}</p>
               <p className="mt-0.5 text-xs text-fg-dim">{helper}</p>
             </div>
           ))}
@@ -233,7 +229,7 @@ function AuthHero({
   const tone = getCoverTone(spotlight);
 
   return (
-    <article className="relative overflow-hidden rounded-[2.5rem] border border-border bg-surface shadow-[0_24px_80px_rgba(0,0,0,0.18)]">
+    <article className="relative overflow-hidden rounded-[2.5rem] border border-border shadow-[0_24px_80px_rgba(0,0,0,0.42)]">
       {/* Background */}
       <div
         className="absolute inset-0"
@@ -249,7 +245,6 @@ function AuthHero({
               }
         }
       />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(251,191,36,0.14),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(34,197,94,0.10),transparent_28%)]" />
 
       {/* Content */}
       <div className="relative flex min-h-[36vh] flex-col justify-end p-6 sm:p-8 lg:min-h-[48vh] lg:p-10">
@@ -258,11 +253,11 @@ function AuthHero({
           {activeTab === "for-you" ? "Your feed" : "Featured content"}
         </div>
 
-        <h1 className="mt-4 max-w-5xl font-display text-3xl font-semibold tracking-tight text-fg sm:text-4xl lg:text-6xl">
+        <h1 className="font-display mt-4 max-w-5xl text-3xl font-semibold tracking-tight text-on-photo sm:text-4xl lg:text-6xl">
           {spotlight?.title ?? "Your content feed is ready"}
         </h1>
 
-        <p className="mt-4 max-w-3xl text-sm leading-7 text-fg-dim sm:text-base">
+        <p className="mt-4 max-w-3xl text-sm leading-7 text-on-photo-dim sm:text-base">
           {spotlight?.excerpt ??
             "Fresh content from the ecosystem, shaped around what you follow, read, and join."}
         </p>
@@ -271,7 +266,7 @@ function AuthHero({
           {spotlight ? (
             <Link
               href={`/read/${spotlight.slug}`}
-              className="rounded-2xl bg-accent px-4 py-3 text-sm font-semibold text-on-accent transition hover:opacity-90"
+              className="rounded-2xl bg-accent px-4 py-3 text-sm font-semibold text-on-accent transition hover:scale-[1.01] hover:opacity-90"
             >
               Open featured content
             </Link>
@@ -317,7 +312,7 @@ function StickyFilterBar({
 }) {
   return (
     <div className="sticky top-0 z-20 -mx-4 px-4 pb-2 pt-2 backdrop-blur-md sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
-      <div className="flex flex-col gap-3 rounded-[2rem] border border-border bg-[rgba(255,255,255,0.04)] p-3 shadow-[0_8px_32px_rgba(0,0,0,0.15)] md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-3 rounded-[2rem] border border-border bg-ink/90 p-3 shadow-[0_8px_32px_rgba(0,0,0,0.4)] md:flex-row md:items-center md:justify-between">
         {/* Tabs */}
         <div className="flex shrink-0 gap-2">
           {(["discover", "for-you"] as const).map((tab) => (
@@ -348,7 +343,7 @@ function StickyFilterBar({
                   onClick={() => setContentType(filter.value)}
                   className={`shrink-0 rounded-2xl px-3.5 py-1.5 text-sm transition ${
                     active
-                      ? "bg-accent-soft text-accent ring-1 ring-accent/30"
+                      ? "bg-accent-soft text-accent-text ring-1 ring-accent/30"
                       : "border border-border bg-surface text-fg-dim hover:bg-surface-2 hover:text-fg"
                   }`}
                 >
@@ -368,13 +363,13 @@ function StickyFilterBar({
  */
 function FeaturedCard({ item }: { item: FeedItem }) {
   return (
-    <article className="relative overflow-hidden rounded-[2.5rem] border border-border bg-surface p-6 shadow-[0_20px_80px_rgba(0,0,0,0.18)] md:p-8 lg:p-10">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,115,0,0.16),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(168,85,247,0.14),transparent_32%)]" />
-      <div className="relative">
-        <span className="inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent-soft px-4 py-2 text-xs font-medium uppercase tracking-[0.22em] text-accent">
+    <article className="overflow-hidden rounded-[2.5rem] border border-border bg-surface shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+      <div className="kanga" />
+      <div className="p-6 md:p-8 lg:p-10">
+        <span className="inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent-soft px-4 py-2 text-xs font-medium uppercase tracking-[0.22em] text-accent-text">
           Featured story
         </span>
-        <h2 className="mt-6 max-w-3xl font-display text-3xl font-semibold leading-tight tracking-tight text-fg sm:text-4xl lg:text-5xl">
+        <h2 className="font-display mt-6 max-w-3xl text-3xl font-semibold leading-tight tracking-tight text-fg sm:text-4xl lg:text-5xl">
           {item.title}
         </h2>
         {item.excerpt ? (
@@ -385,20 +380,20 @@ function FeaturedCard({ item }: { item: FeedItem }) {
         <div className="mt-8 flex flex-wrap gap-3">
           <Link
             href={`/read/${item.slug}`}
-            className="rounded-2xl bg-accent px-5 py-3 text-sm font-semibold text-on-accent transition hover:opacity-90"
+            className="rounded-2xl bg-accent px-5 py-3 text-sm font-semibold text-on-accent transition hover:scale-[1.02] hover:opacity-90"
           >
             Read featured story
           </Link>
           <Link
             href="/writers"
-            className="rounded-2xl border border-border bg-surface px-5 py-3 text-sm text-fg-dim transition hover:bg-surface-2"
+            className="rounded-2xl border border-border bg-surface px-5 py-3 text-sm text-fg-dim transition hover:bg-surface-2 hover:text-fg"
           >
             Explore writers
           </Link>
           {item.is_premium ? (
             <Link
               href="/partnership"
-              className="rounded-2xl border border-accent/30 bg-accent-soft px-5 py-3 text-sm text-accent transition hover:opacity-80"
+              className="rounded-2xl border border-accent/30 bg-accent-soft px-5 py-3 text-sm text-accent-text transition hover:opacity-80"
             >
               Partner content
             </Link>
@@ -411,6 +406,7 @@ function FeaturedCard({ item }: { item: FeedItem }) {
 
 /**
  * Renders the feed body based on a discriminated status union.
+ * All conditional logic lives here — the parent just computes status.
  */
 function FeedGrid({
   status,
@@ -443,7 +439,7 @@ function FeedGrid({
   if (status.type === "login-gate") {
     return (
       <section className="rounded-[2rem] border border-accent/30 bg-accent-soft p-6">
-        <h2 className="font-display text-xl font-semibold text-accent">
+        <h2 className="font-display text-xl font-semibold text-accent-text">
           Login to unlock your personalized feed
         </h2>
         <p className="mt-3 max-w-2xl text-sm leading-6 text-fg-dim">
@@ -511,7 +507,7 @@ function FeedGrid({
               <p className="text-xs uppercase tracking-[0.24em] text-fg-dim">
                 Latest
               </p>
-              <h2 className="mt-2 font-display text-2xl text-fg">
+              <h2 className="font-display mt-2 text-2xl font-semibold text-fg">
                 Fresh from the ecosystem
               </h2>
             </div>
@@ -562,23 +558,32 @@ export default function FeedPage() {
   const discoverItems: FeedItem[] = discoverQuery.data?.items ?? [];
   const forYouItems: FeedItem[] = forYouQuery.data?.items ?? [];
 
+  /**
+   * feedItems: single source of truth for the current tab.
+   * No bleed between tabs — each tab owns its own slice.
+   */
   const feedItems = useMemo<FeedItem[]>(() => {
     return activeTab === "for-you" ? forYouItems : discoverItems;
   }, [activeTab, forYouItems, discoverItems]);
 
+  /** The spotlighted item for the AuthHero background. */
   const spotlight = useMemo<FeedItem | null>(() => {
     if (!isAuthenticated) return null;
     return feedItems[0] ?? null;
   }, [feedItems, isAuthenticated]);
 
+  /** The featured story for the Discover spotlight card. */
   const featured = useMemo<FeedItem | null>(() => {
     if (activeTab !== "discover") return null;
     return discoverItems.find((i) => i.is_featured) ?? discoverItems[0] ?? null;
   }, [activeTab, discoverItems]);
 
+  /** Stable callback so AuthHero doesn't re-render on unrelated state changes. */
   const handleSwitchToForYou = useCallback(() => {
     setActiveTab("for-you");
   }, []);
+
+  // ── Feed status ──────────────────────────────────────────────────────────
 
   const currentQuery = activeTab === "for-you" ? forYouQuery : discoverQuery;
 
@@ -605,6 +610,8 @@ export default function FeedPage() {
     feedItems,
     featured,
   ]);
+
+  // ── Render ───────────────────────────────────────────────────────────────
 
   return (
     <div className="space-y-6">

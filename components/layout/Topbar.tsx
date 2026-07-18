@@ -148,7 +148,7 @@ export default function Topbar() {
 
         <div className="flex items-center justify-between gap-3 md:hidden">
           <div className="min-w-0">
-            <p className="truncate font-display text-lg text-fg">EduConnect</p>
+            <p className="truncate font-display text-lg text-fg">GateWays</p>
             <p className="truncate text-md font-bold text-fg">
               {currentPageLabel}
             </p>
