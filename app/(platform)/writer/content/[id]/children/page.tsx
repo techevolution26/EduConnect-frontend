@@ -57,7 +57,7 @@ export default function AttachChildrenContentPage() {
         content?.content_type === "CHILDREN" && content?.status === "PUBLISHED";
 
     return (
-        <RoleGuard allowedRoles={["MODERATOR", "ADMIN"]}>
+        <RoleGuard allowedRoles={["MODERATOR", "ADMIN", "SUPER_ADMIN"]}>
             <div className="mx-auto max-w-4xl space-y-8">
                 {contentQuery.isLoading ? (
                     <LoadingState label="Loading content..." />

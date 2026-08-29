@@ -12,6 +12,7 @@ import {
   PenLine,
   Sparkles,
   Users,
+  Wallet,
 } from "lucide-react";
 
 import RoleGuard from "@/components/auth/RoleGuard";
@@ -207,6 +208,11 @@ export default function WriterDashboardPage() {
     queryFn: api.writerAnalytics,
   });
 
+  const referralSummaryQuery = useQuery({
+    queryKey: ["partnerships", "referrals", "summary"],
+    queryFn: api.myReferralSummary,
+  });
+
   const items = myContentQuery.data?.items ?? [];
 
   const quickStats = useMemo(
@@ -240,7 +246,7 @@ export default function WriterDashboardPage() {
   );
 
   return (
-    <RoleGuard allowedRoles={["WRITER", "TEACHER", "ADMIN"]}>
+    <RoleGuard allowedRoles={["WRITER", "TEACHER", "ADMIN", "SUPER_ADMIN"]}>
       <div className="space-y-8 pb-10">
         <section className="overflow-hidden rounded-[2rem] border border-border bg-surface">
           <div className="kanga" />
@@ -266,6 +272,13 @@ export default function WriterDashboardPage() {
                   className="rounded-2xl bg-accent px-4 py-3 text-sm font-semibold text-on-accent transition hover:scale-[1.01] hover:opacity-90"
                 >
                   Create new content
+                </Link>
+
+                <Link
+                  href="/writer/events/create"
+                  className="rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-fg-dim transition hover:bg-surface-2 hover:text-fg"
+                >
+                  Host an event
                 </Link>
 
                 <Link
@@ -304,6 +317,41 @@ export default function WriterDashboardPage() {
             />
           ))}
         </section>
+
+        {/* Referral earnings -- turns sharing your partnership link into
+            real income. See backend services/monetization_service.py. */}
+        {referralSummaryQuery.data ? (
+          <section className="rounded-[2rem] border border-border bg-surface p-5">
+            <div className="flex items-center gap-2">
+              <Wallet className="h-5 w-5 text-accent-text" />
+              <h2 className="font-display text-xl font-semibold">Referral earnings</h2>
+            </div>
+            <p className="mt-2 text-sm text-fg-dim">
+              You earn 10% commission when someone you refer buys a partnership.
+              Share your profile link to start earning.
+            </p>
+            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+              <div className="rounded-2xl border border-border bg-surface-2 p-4">
+                <p className="text-xs text-fg-dim">Pending</p>
+                <p className="mt-1 text-xl font-semibold text-fg">
+                  KES {referralSummaryQuery.data.pending_kes.toLocaleString()}
+                </p>
+              </div>
+              <div className="rounded-2xl border border-border bg-surface-2 p-4">
+                <p className="text-xs text-fg-dim">Paid out</p>
+                <p className="mt-1 text-xl font-semibold text-fg">
+                  KES {referralSummaryQuery.data.paid_kes.toLocaleString()}
+                </p>
+              </div>
+              <div className="rounded-2xl border border-border bg-surface-2 p-4">
+                <p className="text-xs text-fg-dim">Total referrals</p>
+                <p className="mt-1 text-xl font-semibold text-fg">
+                  {referralSummaryQuery.data.total_referrals}
+                </p>
+              </div>
+            </div>
+          </section>
+        ) : null}
 
         <section className="rounded-[2rem] border border-border bg-surface p-5">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">

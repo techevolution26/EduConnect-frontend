@@ -115,7 +115,7 @@ export default function AdminCategoriesClient() {
     const isSaving = createMutation.isPending || updateMutation.isPending;
 
     return (
-        <RoleGuard allowedRoles={["ADMIN"]}>
+        <RoleGuard allowedRoles={["ADMIN", "SUPER_ADMIN"]}>
             <div className="space-y-8">
                 <section className="rounded-[2rem] border border-border bg-surface p-6 shadow-2xl">
                     <p className="text-xs uppercase tracking-[0.28em] text-fg-dim">

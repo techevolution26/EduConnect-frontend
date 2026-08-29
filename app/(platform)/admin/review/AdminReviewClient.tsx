@@ -159,7 +159,7 @@ export default function AdminReviewClient() {
   }, [selectedContent]);
 
   return (
-    <RoleGuard allowedRoles={["MODERATOR", "ADMIN"]}>
+    <RoleGuard allowedRoles={["MODERATOR", "ADMIN", "SUPER_ADMIN"]}>
       <div className="space-y-8">
         <section className="overflow-hidden rounded-[2rem] border border-border bg-surface shadow-2xl">
           <div className="kanga" />

@@ -155,7 +155,7 @@ export default function AdminHubsClient() {
     const hubs = hubsQuery.data ?? [];
 
     return (
-        <RoleGuard allowedRoles={["ADMIN"]}>
+        <RoleGuard allowedRoles={["ADMIN", "SUPER_ADMIN"]}>
             <div className="space-y-8">
                 <section className="rounded-[2rem] border border-border bg-surface p-5 shadow-2xl sm:p-6">
                     <p className="text-xs uppercase tracking-[0.28em] text-fg-dim">

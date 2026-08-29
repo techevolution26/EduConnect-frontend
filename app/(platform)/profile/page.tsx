@@ -34,6 +34,8 @@ function getRoleDescription(role: UserRole) {
             "You can review submitted content, approve safe posts, reject unsafe content, and help protect the community.",
         ADMIN:
             "You have full platform management access including users, roles, content review, hubs, categories, and analytics.",
+        SUPER_ADMIN:
+            "You have unrestricted platform access, including granting scoped permissions to other admins, managing referral payouts, and every capability an admin can hold.",
     };
 
     return descriptions[role];
@@ -121,6 +123,23 @@ function getRoleActions(role: UserRole) {
                 href: "/admin/content",
                 label: "Manage content",
                 icon: PenLine,
+            },
+        ],
+        SUPER_ADMIN: [
+            {
+                href: "/admin/dashboard",
+                label: "Admin dashboard",
+                icon: ShieldCheck,
+            },
+            {
+                href: "/admin/permissions",
+                label: "Admin permissions",
+                icon: ShieldCheck,
+            },
+            {
+                href: "/admin/payouts",
+                label: "Referral payouts",
+                icon: Library,
             },
         ],
     };

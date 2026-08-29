@@ -3,6 +3,7 @@ import type {
   AdminDashboardStats,
   AdminUser,
   AdminUserListResponse,
+  AdminPermissionListResponse,
   Category,
   Comment,
   Content,
@@ -10,6 +11,7 @@ import type {
   ContentListResponse,
   FeedResponse,
   Hub,
+  Permission,
   TokenResponse,
   User,
   UserRole,
@@ -23,6 +25,7 @@ import type {
   Partnership,
   PartnershipPlan,
   PartnershipAccess,
+  PartnershipCheckoutResponse,
   PartnershipPlanRead,
   WriterRelationship,
   RoleRequestStatus,
@@ -31,6 +34,23 @@ import type {
   GlobalSearchResponse,
   MessageResponse,
   CreateContentPayload,
+  EduEvent,
+  EduEventDetail,
+  EduEventListResponse,
+  EventParticipant,
+  EventCreatePayload,
+  EventSubmissionPayload,
+  EventType,
+  EventStatus,
+  School,
+  SchoolType,
+  StudentProfile,
+  LeaderboardResponse,
+  MyXP,
+  Badge,
+  UserBadge,
+  ReferralSummary,
+  ReferralEarningListResponse,
 } from "@/lib/types";
 // import { request } from "https";
 
@@ -39,7 +59,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/$/, "") 
 const API_PREFIX = "/api/v1";
 
 type ApiRequestOptions = {
-  method?: "GET" | "POST" | "PATCH" | "DELETE";
+  method?: "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
   body?: unknown;
   auth?: boolean;
   isFormData?: boolean;
@@ -653,10 +673,34 @@ export const api = {
     phone_number: string;
     referral_creator_id?: string | null;
   }) {
-    return apiRequest("/partnerships/start", {
+    // BUGFIX: this call was previously untyped (no <T>), so every caller
+    // saw `unknown` and had to re-assert the shape themselves. Backend
+    // returns { partnership, payment, message } -- see
+    // schemas/partnership.py::PartnershipCheckoutResponse.
+    return apiRequest<PartnershipCheckoutResponse>("/partnerships/start", {
       method: "POST",
       auth: true,
       body: payload,
+    });
+  },
+
+  adminActivatePartnership(partnershipId: string, months: number = 1) {
+    return apiRequest<Partnership>(`/partnerships/${partnershipId}/activate`, {
+      method: "POST",
+      auth: true,
+      body: { months },
+    });
+  },
+
+  myReferralSummary() {
+    return apiRequest<ReferralSummary>("/partnerships/referrals/summary", {
+      auth: true,
+    });
+  },
+
+  myReferralEarnings() {
+    return apiRequest<ReferralEarningListResponse>("/partnerships/referrals/earnings", {
+      auth: true,
     });
   },
 
@@ -913,6 +957,255 @@ export const api = {
       method: "POST",
       auth: true,
       body: payload,
+    });
+  },
+
+  // ── Admin: scoped permission management (SUPER_ADMIN only) ─────────────
+
+  getUserPermissions(userId: string) {
+    return apiRequest<AdminPermissionListResponse>(`/admin/users/${userId}/permissions`, {
+      auth: true,
+    });
+  },
+
+  grantUserPermission(userId: string, permission: Permission) {
+    return apiRequest<AdminPermissionListResponse>(`/admin/users/${userId}/permissions`, {
+      method: "POST",
+      body: { permission },
+      auth: true,
+    });
+  },
+
+  revokeUserPermission(userId: string, permission: Permission) {
+    return apiRequest<AdminPermissionListResponse>(
+      `/admin/users/${userId}/permissions/${permission}`,
+      {
+        method: "DELETE",
+        auth: true,
+      },
+    );
+  },
+
+  // ── Admin: referral commission payouts ──────────────────────────────────
+
+  adminPendingPayouts(params?: { skip?: number; limit?: number }) {
+    const searchParams = new URLSearchParams();
+    Object.entries(params ?? {}).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) searchParams.set(key, String(value));
+    });
+    const query = searchParams.toString();
+    return apiRequest<ReferralEarningListResponse>(
+      `/admin/payouts/pending${query ? `?${query}` : ""}`,
+      { auth: true },
+    );
+  },
+
+  adminMarkPayoutPaid(earningId: string) {
+    return apiRequest<MessageResponse>(`/admin/payouts/${earningId}/mark-paid`, {
+      method: "POST",
+      auth: true,
+    });
+  },
+
+  // ── Admin: badge definitions ────────────────────────────────────────────
+
+  adminCreateBadge(payload: {
+    slug: string;
+    name: string;
+    description?: string;
+    icon?: string;
+    xp_reward?: number;
+    condition: { type: string; threshold: number };
+  }) {
+    return apiRequest<Badge>("/admin/badges", {
+      method: "POST",
+      body: payload,
+      auth: true,
+    });
+  },
+
+  // ── Events: competitions, workshops, book clubs ─────────────────────────
+
+  events(params?: { skip?: number; limit?: number; type?: EventType; curriculum_tag?: string }) {
+    const searchParams = new URLSearchParams();
+    Object.entries(params ?? {}).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== "") {
+        searchParams.set(key, String(value));
+      }
+    });
+    const query = searchParams.toString();
+    return apiRequest<EduEventListResponse>(`/events${query ? `?${query}` : ""}`);
+  },
+
+  eventDetail(slug: string) {
+    return apiRequest<EduEventDetail>(`/events/${slug}`);
+  },
+
+  myHostedEvents(params?: { skip?: number; limit?: number; status_filter?: EventStatus }) {
+    const searchParams = new URLSearchParams();
+    Object.entries(params ?? {}).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        searchParams.set(key, String(value));
+      }
+    });
+    const query = searchParams.toString();
+    return apiRequest<EduEventListResponse>(`/events/mine${query ? `?${query}` : ""}`, {
+      auth: true,
+    });
+  },
+
+  createEvent(payload: EventCreatePayload) {
+    return apiRequest<EduEvent>("/events", {
+      method: "POST",
+      body: payload,
+      auth: true,
+    });
+  },
+
+  publishEvent(eventId: string) {
+    return apiRequest<EduEvent>(`/events/${eventId}/publish`, {
+      method: "POST",
+      auth: true,
+    });
+  },
+
+  cancelEvent(eventId: string) {
+    return apiRequest<EduEvent>(`/events/${eventId}/cancel`, {
+      method: "POST",
+      auth: true,
+    });
+  },
+
+  rsvpToEvent(eventId: string) {
+    return apiRequest<EventParticipant>(`/events/${eventId}/rsvp`, {
+      method: "POST",
+      auth: true,
+    });
+  },
+
+  withdrawFromEvent(eventId: string) {
+    return apiRequest<void>(`/events/${eventId}/rsvp`, {
+      method: "DELETE",
+      auth: true,
+    });
+  },
+
+  myEventParticipation(eventId: string) {
+    return apiRequest<EventParticipant | null>(`/events/${eventId}/me`, {
+      auth: true,
+    });
+  },
+
+  submitEventEntry(eventId: string, payload: EventSubmissionPayload) {
+    return apiRequest<EventParticipant>(`/events/${eventId}/submit`, {
+      method: "POST",
+      body: payload,
+      auth: true,
+    });
+  },
+
+  eventParticipants(eventId: string) {
+    return apiRequest<EventParticipant[]>(`/events/${eventId}/participants`, {
+      auth: true,
+    });
+  },
+
+  markEventParticipantAttended(eventId: string, userId: string) {
+    return apiRequest<EventParticipant>(
+      `/events/${eventId}/participants/${userId}/attend`,
+      { method: "POST", auth: true },
+    );
+  },
+
+  markEventParticipantCompleted(eventId: string, userId: string) {
+    return apiRequest<EventParticipant>(
+      `/events/${eventId}/participants/${userId}/complete`,
+      { method: "POST", auth: true },
+    );
+  },
+
+  // ── Student identity: schools, verification ─────────────────────────────
+
+  searchSchools(q: string) {
+    const searchParams = new URLSearchParams({ q });
+    return apiRequest<School[]>(`/students/schools?${searchParams.toString()}`);
+  },
+
+  createSchool(payload: { name: string; county?: string; type?: SchoolType }) {
+    return apiRequest<School>("/students/schools", {
+      method: "POST",
+      body: payload,
+      auth: true,
+    });
+  },
+
+  myStudentProfile() {
+    return apiRequest<StudentProfile | null>("/students/me", {
+      auth: true,
+    });
+  },
+
+  updateStudentAffiliation(payload: {
+    school_id: string;
+    grade_level?: string;
+    curriculum?: string;
+  }) {
+    return apiRequest<StudentProfile>("/students/me/affiliation", {
+      method: "PUT",
+      body: payload,
+      auth: true,
+    });
+  },
+
+  requestStudentVerification(schoolEmail: string) {
+    return apiRequest<MessageResponse>("/students/me/verify/request", {
+      method: "POST",
+      body: { school_email: schoolEmail },
+      auth: true,
+    });
+  },
+
+  confirmStudentVerification(code: string) {
+    return apiRequest<StudentProfile>("/students/me/verify/confirm", {
+      method: "POST",
+      body: { code },
+      auth: true,
+    });
+  },
+
+  adminVerifyStudent(userId: string) {
+    return apiRequest<StudentProfile>(`/students/${userId}/verify`, {
+      method: "POST",
+      auth: true,
+    });
+  },
+
+  // ── Leaderboard, XP, badges ──────────────────────────────────────────────
+
+  leaderboard(params?: { period?: "all_time" | "month"; school_id?: string; limit?: number }) {
+    const searchParams = new URLSearchParams();
+    Object.entries(params ?? {}).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== "") {
+        searchParams.set(key, String(value));
+      }
+    });
+    const query = searchParams.toString();
+    return apiRequest<LeaderboardResponse>(`/leaderboard${query ? `?${query}` : ""}`);
+  },
+
+  myXP() {
+    return apiRequest<MyXP>("/leaderboard/me", {
+      auth: true,
+    });
+  },
+
+  allBadges() {
+    return apiRequest<Badge[]>("/leaderboard/badges");
+  },
+
+  myBadges() {
+    return apiRequest<UserBadge[]>("/leaderboard/me/badges", {
+      auth: true,
     });
   },
 

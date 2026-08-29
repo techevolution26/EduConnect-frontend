@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { CheckCircle2, HeartHandshake, Lock, Sparkles } from "lucide-react";
+import { CheckCircle2, GraduationCap, HeartHandshake, Lock, Sparkles } from "lucide-react";
 import Link from "next/link";
 
 import LoadingState from "@/components/ui/LoadingState";
 import { api, ApiError } from "@/lib/api";
-import { clearAuthSession, getAccessToken } from "@/lib/auth";
+import { clearAuthSession, getAccessToken, getStoredUser } from "@/lib/auth";
+import { isEligibleForPlan } from "@/lib/roles";
 import type { PartnershipPlan } from "@/lib/types";
 
 // ─── Static plan metadata ────────────────────────────────────────────────────
@@ -59,11 +60,13 @@ function planCardStyle(plan: PartnershipPlan) {
 export default function PartnershipPage() {
   const [mounted, setMounted] = useState(false);
   const [hasSessionToken, setHasSessionToken] = useState(false);
+  const [currentUser, setCurrentUser] = useState(() => (typeof window !== "undefined" ? getStoredUser() : null));
 
   useEffect(() => {
     const timeout = window.setTimeout(() => {
       setMounted(true);
       setHasSessionToken(Boolean(getAccessToken()));
+      setCurrentUser(getStoredUser());
     }, 0);
     return () => window.clearTimeout(timeout);
   }, []);
@@ -178,6 +181,8 @@ export default function PartnershipPage() {
           const isCurrentPlan =
             activePlan === plan.plan && hasActivePartnership;
           const isPublicAccessPlan = plan.plan === "FREE";
+          const isEligible = isEligibleForPlan(currentUser, plan.plan);
+          const isRoleRestricted = plan.plan === "STUDENT_PARTNER" || plan.plan === "TEACHER_PARTNER";
 
           return (
             <article
@@ -247,6 +252,19 @@ export default function PartnershipPage() {
                   <div className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-success/30 bg-success-soft px-4 py-3 text-sm font-semibold text-success">
                     <CheckCircle2 className="h-4 w-4" />
                     Current plan
+                  </div>
+                ) : isAuthenticated && isRoleRestricted && !isEligible ? (
+                  /* Authenticated but ineligible (e.g. a reader viewing
+                     STUDENT_PARTNER) -- show why instead of a dead-end
+                     checkout that the backend will reject with a 403. */
+                  <div
+                    title={`This plan requires the ${
+                      plan.plan === "STUDENT_PARTNER" ? "Student" : "Teacher"
+                    } role on your account`}
+                    className="inline-flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-2xl border border-border bg-surface px-4 py-3 text-sm font-semibold text-fg-dim"
+                  >
+                    <GraduationCap className="h-4 w-4" />
+                    {plan.plan === "STUDENT_PARTNER" ? "Students only" : "Teachers only"}
                   </div>
                 ) : isAuthenticated ? (
                   /* Authenticated — go to checkout page for this plan */

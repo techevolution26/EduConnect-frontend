@@ -5,7 +5,7 @@ import { ReactNode } from "react";
 
 import AuthGuard from "@/components/auth/AuthGuard";
 
-const publicRoutes = ["/feed", "/read", "/partnership"];
+const publicRoutes = ["/feed", "/read", "/partnership", "/events", "/leaderboard"];
 
 function isPublicRoute(pathname: string) {
     return publicRoutes.some((route) => {

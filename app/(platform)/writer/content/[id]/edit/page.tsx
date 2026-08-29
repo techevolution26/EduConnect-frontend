@@ -562,7 +562,7 @@ export default function WriterContentEditPage() {
   );
 
   return (
-    <RoleGuard allowedRoles={["WRITER", "TEACHER", "ADMIN"]}>
+    <RoleGuard allowedRoles={["WRITER", "TEACHER", "ADMIN", "SUPER_ADMIN"]}>
       <div className="mx-auto max-w-6xl space-y-8 overflow-x-hidden px-3 pb-10 sm:px-0">
         {contentQuery.isLoading ? (
           <LoadingState label="Loading content…" />

@@ -69,7 +69,7 @@ export default function AttachEducationResourcePage() {
       : "Could not attach education metadata.";
 
   return (
-    <RoleGuard allowedRoles={["TEACHER", "WRITER", "ADMIN"]}>
+    <RoleGuard allowedRoles={["TEACHER", "WRITER", "ADMIN", "SUPER_ADMIN"]}>
       <div className="mx-auto max-w-4xl space-y-8">
         {contentQuery.isLoading ? (
           <LoadingState label="Loading content..." />

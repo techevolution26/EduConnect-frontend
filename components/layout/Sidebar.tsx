@@ -1,16 +1,21 @@
 "use client";
 
 import {
+  Award,
   Bookmark,
+  CalendarDays,
   Gauge,
+  GraduationCap,
   Home,
   Library,
   Menu,
   PenLine,
   Search,
   ShieldCheck,
+  Trophy,
   UserCircle,
   Users,
+  Wallet,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
@@ -20,7 +25,14 @@ import { useState } from "react";
 import { MobileSheet } from "@/components/layout/MobileSheet";
 import { SIDEBAR_WIDTH_CLASS } from "@/components/layout/layoutConstants";
 import { useAuthSession } from "@/hooks/useAuthSession";
-import { canModerate, canPublish, isAdmin } from "@/lib/roles";
+import {
+  canHostEvents,
+  canModerate,
+  canPublish,
+  isAdminTier,
+  isStudent,
+  isSuperAdmin,
+} from "@/lib/roles";
 
 type NavItem = {
   href: string;
@@ -31,6 +43,8 @@ type NavItem = {
 const primaryNavItems: NavItem[] = [
   { href: "/feed", label: "Feed", icon: Home },
   { href: "/library", label: "Library", icon: Bookmark },
+  { href: "/events", label: "Events", icon: CalendarDays },
+  { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
   { href: "/search", label: "Search", icon: Search },
   { href: "/hubs", label: "Hubs", icon: Users },
   { href: "/partnership", label: "Partnership", icon: Library },
@@ -136,6 +150,24 @@ export default function Sidebar() {
               },
             ]
           : []),
+        ...(canHostEvents(user)
+          ? [
+              {
+                href: "/writer/events",
+                label: "My Events",
+                icon: CalendarDays,
+              },
+            ]
+          : []),
+        ...(isStudent(user)
+          ? [
+              {
+                href: "/student/verify",
+                label: "Student Verification",
+                icon: GraduationCap,
+              },
+            ]
+          : []),
         ...(canModerate(user)
           ? [
               {
@@ -145,12 +177,26 @@ export default function Sidebar() {
               },
             ]
           : []),
-        ...(isAdmin(user)
+        ...(isAdminTier(user)
           ? [
               {
                 href: "/admin/dashboard",
                 label: "Admin Dashboard",
                 icon: Gauge,
+              },
+            ]
+          : []),
+        ...(isSuperAdmin(user)
+          ? [
+              {
+                href: "/admin/permissions",
+                label: "Permissions",
+                icon: Award,
+              },
+              {
+                href: "/admin/payouts",
+                label: "Payouts",
+                icon: Wallet,
               },
             ]
           : []),

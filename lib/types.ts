@@ -5,7 +5,8 @@ export type UserRole =
   | "STUDENT"
   | "PARENT"
   | "MODERATOR"
-  | "ADMIN";
+  | "ADMIN"
+  | "SUPER_ADMIN";
 
 export type ContentType =
   | "ARTICLE"
@@ -164,6 +165,7 @@ export type AdminDashboardStats = {
   total_parents: number;
   total_moderators: number;
   total_admins: number;
+  total_super_admins: number;
 
   total_content: number;
   pending_content: number;
@@ -335,6 +337,36 @@ export type Partnership = {
   updated_at: string;
 };
 
+export type PartnershipPaymentStatus =
+  | "INITIATED"
+  | "PENDING"
+  | "SUCCESS"
+  | "FAILED"
+  | "CANCELLED";
+
+export type PartnershipPayment = {
+  id: string;
+  partnership_id: string;
+  user_id: string;
+  provider: string;
+  status: PartnershipPaymentStatus;
+  plan: string;
+  amount: number;
+  currency: string;
+  phone_number: string;
+  checkout_request_id: string | null;
+  mpesa_receipt_number: string | null;
+  created_at: string;
+};
+
+// Response shape from POST /partnerships/start. `payment` is null only for
+// the FREE plan, which activates immediately with no payment step.
+export type PartnershipCheckoutResponse = {
+  partnership: Partnership;
+  payment: PartnershipPayment | null;
+  message: string;
+};
+
 export type WriterRelationship = {
   following: boolean;
   is_self: boolean;
@@ -387,4 +419,235 @@ export type CreateContentPayload = {
   cover_image_url?: string;
   images?: File[];
   files?: File[];
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Granular admin permissions
+// See backend app/core/permissions.py::Permission -- SUPER_ADMIN implicitly
+// holds every permission; a plain ADMIN holds only what's explicitly
+// granted here.
+// ─────────────────────────────────────────────────────────────────────────
+
+export type Permission =
+  | "users.view"
+  | "users.manage"
+  | "content.moderate"
+  | "content.manage"
+  | "catalog.manage"
+  | "role_requests.review"
+  | "partnerships.manage"
+  | "payouts.manage"
+  | "events.manage"
+  | "events.moderate"
+  | "students.verify"
+  | "badges.manage"
+  | "reports.manage"
+  | "system.settings";
+
+export const ALL_PERMISSIONS: Permission[] = [
+  "users.view",
+  "users.manage",
+  "content.moderate",
+  "content.manage",
+  "catalog.manage",
+  "role_requests.review",
+  "partnerships.manage",
+  "payouts.manage",
+  "events.manage",
+  "events.moderate",
+  "students.verify",
+  "badges.manage",
+  "reports.manage",
+  "system.settings",
+];
+
+export const PERMISSION_LABELS: Record<Permission, string> = {
+  "users.view": "View users",
+  "users.manage": "Manage user roles & status",
+  "content.moderate": "Moderate content (approve/reject)",
+  "content.manage": "Manage content (feature/delete any)",
+  "catalog.manage": "Manage categories & hubs",
+  "role_requests.review": "Review role upgrade requests",
+  "partnerships.manage": "Manually activate partnerships",
+  "payouts.manage": "Manage referral commission payouts",
+  "events.manage": "Manage any event (not just own)",
+  "events.moderate": "Review event submissions & attendance",
+  "students.verify": "Manually verify students",
+  "badges.manage": "Create & edit badges",
+  "reports.manage": "Manage user-submitted reports",
+  "system.settings": "System settings",
+};
+
+export type AdminPermissionListResponse = {
+  user_id: string;
+  permissions: Permission[];
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Marketing events: competitions, workshops, book clubs
+// ─────────────────────────────────────────────────────────────────────────
+
+export type EventType = "COMPETITION" | "WORKSHOP" | "BOOK_CLUB";
+
+export type EventStatus =
+  | "DRAFT"
+  | "PUBLISHED"
+  | "ONGOING"
+  | "COMPLETED"
+  | "CANCELLED";
+
+export type ParticipationStatus =
+  | "RSVP"
+  | "ATTENDED"
+  | "SUBMITTED"
+  | "COMPLETED"
+  | "WITHDREW";
+
+export type EduEvent = {
+  id: string;
+  title: string;
+  slug: string;
+  description: string | null;
+  type: EventType;
+  status: EventStatus;
+  host_id: string;
+  curriculum_tags: string[];
+  student_only: boolean;
+  school_id: string | null;
+  requires_partnership: boolean;
+  starts_at: string | null;
+  ends_at: string | null;
+  max_participants: number | null;
+  cover_image_url: string | null;
+  created_at: string;
+};
+
+export type EduEventDetail = EduEvent & {
+  metadata: Record<string, unknown>;
+};
+
+export type EduEventListResponse = {
+  items: EduEvent[];
+  total: number;
+  skip: number;
+  limit: number;
+};
+
+export type EventParticipant = {
+  id: string;
+  event_id: string;
+  user_id: string;
+  status: ParticipationStatus;
+  xp_awarded: number;
+  submission: Record<string, unknown> | null;
+  created_at: string;
+};
+
+export type EventCreatePayload = {
+  title: string;
+  description?: string;
+  type: EventType;
+  curriculum_tags?: string[];
+  student_only?: boolean;
+  school_id?: string;
+  requires_partnership?: boolean;
+  starts_at?: string;
+  ends_at?: string;
+  max_participants?: number;
+  metadata?: Record<string, unknown>;
+  cover_image_url?: string;
+};
+
+export type EventSubmissionPayload = {
+  content_id?: string;
+  note?: string;
+  url?: string;
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Student identity: schools, verification
+// ─────────────────────────────────────────────────────────────────────────
+
+export type SchoolType = "PRIMARY" | "SECONDARY" | "COLLEGE" | "UNIVERSITY";
+
+export type School = {
+  id: string;
+  name: string;
+  county: string | null;
+  type: SchoolType | null;
+};
+
+export type StudentProfile = {
+  user_id: string;
+  school_id: string | null;
+  grade_level: string | null;
+  curriculum: string | null;
+  verified: boolean;
+  verified_at: string | null;
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Gamification: XP, leaderboard, badges
+// ─────────────────────────────────────────────────────────────────────────
+
+export type LeaderboardEntry = {
+  user_id: string;
+  full_name: string | null;
+  total_xp: number;
+  rank: number;
+};
+
+export type LeaderboardResponse = {
+  period: "all_time" | "month";
+  school_id: string | null;
+  entries: LeaderboardEntry[];
+};
+
+export type MyXP = {
+  total_xp: number;
+  rank: number | null;
+  school_rank: number | null;
+};
+
+export type Badge = {
+  id: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  icon: string | null;
+  xp_reward: number;
+};
+
+export type UserBadge = {
+  badge: Badge;
+  awarded_at: string;
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Monetization: referral commissions
+// ─────────────────────────────────────────────────────────────────────────
+
+export type ReferralEarningStatus = "PENDING" | "PAID" | "VOID";
+
+export type ReferralEarning = {
+  id: string;
+  partnership_id: string;
+  source_amount_kes: number;
+  commission_rate_bps: number;
+  commission_amount_kes: number;
+  status: ReferralEarningStatus;
+  created_at: string;
+};
+
+export type ReferralSummary = {
+  pending_kes: number;
+  paid_kes: number;
+  total_referrals: number;
+};
+
+export type ReferralEarningListResponse = {
+  items: ReferralEarning[];
+  total: number;
+  skip: number;
+  limit: number;
 };

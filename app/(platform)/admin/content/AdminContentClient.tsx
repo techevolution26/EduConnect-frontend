@@ -249,7 +249,7 @@ export default function AdminContentClient() {
     }, [selectedContent]);
 
     return (
-        <RoleGuard allowedRoles={["ADMIN", "MODERATOR"]}>
+        <RoleGuard allowedRoles={["ADMIN", "SUPER_ADMIN", "MODERATOR"]}>
             <div className="space-y-8">
                 <section className="overflow-hidden rounded-[2rem] border border-border bg-surface shadow-2xl">
                     <div className="kanga" />

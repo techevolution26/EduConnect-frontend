@@ -4,6 +4,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
+    Award,
+    CalendarDays,
     FileText,
     FolderTree,
     LayoutGrid,
@@ -11,22 +13,30 @@ import {
     ShieldCheck,
     UserCog,
     Users,
+    Wallet,
 } from "lucide-react";
 
 import RoleGuard from "@/components/auth/RoleGuard";
 import LoadingState from "@/components/ui/LoadingState";
 import { api, ApiError } from "@/lib/api";
+import { useAuthSession } from "@/hooks/useAuthSession";
+import { isSuperAdmin } from "@/lib/roles";
 import type { UserRole } from "@/lib/types";
 
-const roleOptions: UserRole[] = [
+// HARDENING: previously included "ADMIN" in the per-user role dropdown
+// with no gating -- ANY admin viewing this page could attempt to set
+// another user's role to ADMIN. The backend now rejects staff-role changes
+// from a non-super-admin (see admin_service.py::update_user_role), but we
+// shouldn't let the UI even suggest an action that will 403. Staff roles
+// are appended separately, only for a SUPER_ADMIN viewer.
+const memberRoleOptions: UserRole[] = [
     "READER",
     "WRITER",
     "TEACHER",
     "STUDENT",
     "PARENT",
-    "MODERATOR",
-    "ADMIN",
 ];
+const staffRoleOptions: UserRole[] = ["MODERATOR", "ADMIN", "SUPER_ADMIN"];
 
 function StatCard({
     label,
@@ -71,8 +81,20 @@ function AdminActionCard({
 
 export default function AdminDashboardClient() {
     const queryClient = useQueryClient();
+    const { user: actingUser } = useAuthSession();
     const [search, setSearch] = useState("");
     const [roleFilter, setRoleFilter] = useState<UserRole | "">("");
+
+    // Only a super admin may assign/remove staff roles (MODERATOR, ADMIN,
+    // SUPER_ADMIN) -- see services/admin_service.py::update_user_role. A
+    // plain admin (even with USERS_MANAGE) only sees member-role options in
+    // the per-user assignment dropdown, so it never offers an action that
+    // will 403. The FILTER dropdown is unrestricted -- viewing/filtering by
+    // any role is a read action (USERS_VIEW), not a role-assignment action.
+    const allRoleOptions: UserRole[] = [...memberRoleOptions, ...staffRoleOptions];
+    const assignableRoleOptions: UserRole[] = isSuperAdmin(actingUser)
+        ? allRoleOptions
+        : memberRoleOptions;
 
     const dashboardQuery = useQuery({
         queryKey: ["admin", "dashboard"],
@@ -137,6 +159,7 @@ export default function AdminDashboardClient() {
             { label: "Parents", value: stats?.total_parents ?? 0 },
             { label: "Moderators", value: stats?.total_moderators ?? 0 },
             { label: "Admins", value: stats?.total_admins ?? 0 },
+            { label: "Super Admins", value: stats?.total_super_admins ?? 0 },
         ];
     }, [dashboardQuery.data]);
 
@@ -148,7 +171,7 @@ export default function AdminDashboardClient() {
                 : "Admin action failed.";
 
     return (
-        <RoleGuard allowedRoles={["ADMIN"]}>
+        <RoleGuard allowedRoles={["ADMIN", "SUPER_ADMIN"]}>
             <div className="space-y-8">
                 <section className="rounded-[2rem] border border-border bg-surface p-6 shadow-2xl">
                     <p className="text-xs uppercase tracking-[0.28em] text-fg-dim">
@@ -237,6 +260,31 @@ export default function AdminDashboardClient() {
                             description="Publish directly as an admin or seed important platform content."
                             icon={PenLine}
                         />
+
+                        <AdminActionCard
+                            href="/events"
+                            title="Browse events"
+                            description="View and moderate competitions, workshops, and book clubs."
+                            icon={CalendarDays}
+                        />
+
+                        {isSuperAdmin(actingUser) ? (
+                            <>
+                                <AdminActionCard
+                                    href="/admin/permissions"
+                                    title="Admin permissions"
+                                    description="Grant or revoke specific capabilities for scoped admin accounts."
+                                    icon={Award}
+                                />
+
+                                <AdminActionCard
+                                    href="/admin/payouts"
+                                    title="Referral payouts"
+                                    description="Review and mark referral commission payouts as paid."
+                                    icon={Wallet}
+                                />
+                            </>
+                        ) : null}
                     </div>
                 </section>
 
@@ -330,7 +378,7 @@ export default function AdminDashboardClient() {
                                 className="rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-fg outline-none focus:border-accent/40"
                             >
                                 <option value="">All roles</option>
-                                {roleOptions.map((role) => (
+                                {allRoleOptions.map((role) => (
                                     <option key={role} value={role}>
                                         {role}
                                     </option>
@@ -385,7 +433,16 @@ export default function AdminDashboardClient() {
                                         }
                                         className="rounded-2xl border border-border bg-surface px-3 py-2 text-sm text-fg outline-none"
                                     >
-                                        {roleOptions.map((role) => (
+                                        {/* If this user already holds a staff role that the acting
+                                            admin can't assign, still show it as the current value
+                                            (disabled option) so the select doesn't silently jump to
+                                            a different role in the UI. */}
+                                        {!assignableRoleOptions.includes(user.role) ? (
+                                            <option value={user.role} disabled>
+                                                {user.role} (super admin only)
+                                            </option>
+                                        ) : null}
+                                        {assignableRoleOptions.map((role) => (
                                             <option key={role} value={role}>
                                                 {role}
                                             </option>

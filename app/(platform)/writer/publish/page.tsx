@@ -134,7 +134,7 @@ export default function PublishPage() {
   // ── Render ────────────────────────────────────────────────────
 
   return (
-    <RoleGuard allowedRoles={["WRITER", "TEACHER", "ADMIN"]}>
+    <RoleGuard allowedRoles={["WRITER", "TEACHER", "ADMIN", "SUPER_ADMIN"]}>
       <div className="mx-auto min-h-screen max-w-[1400px] overflow-x-hidden px-3 py-4 sm:px-6 lg:px-8">
         {/* Hero */}
         <section className="overflow-hidden rounded-[1.5rem] border border-border bg-surface sm:rounded-[2rem]">
